@@ -106,7 +106,7 @@
                                                 {{-- <li><a href="#"><i class="far fa-random"></i></a> --}}
                                             </ul>
                                             <div class="wsus__product_details">
-                                                <a class="wsus__category" href="#">{{$product->category->name}} </a>
+                                                <a class="wsus__category" href="#">{{$product->category?->name}} </a>
                                                 <p class="wsus__pro_rating">
                                                     @php
                                                     $avgRating = $product->reviews()->avg('rating');
@@ -367,7 +367,7 @@
                                         </ul>
                                     </form>
 
-                                    <p class="brand_model"><span>brand :</span> {{$product->brand->name}}</p>
+                                    <p class="brand_model"><span>brand :</span> {{$product->brand?->name}}</p>
 
                                 </div>
                             </div>

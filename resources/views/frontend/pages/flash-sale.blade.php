@@ -55,6 +55,7 @@
                     @php
                         $product = \App\Models\Product::find($item->product_id);
                     @endphp
+                    @if ($product)
                     <div class="col-xl-3 col-sm-6 col-lg-4">
                         <div class="wsus__product_item">
                             <span class="wsus__new">{{productType($product->product_type)}}</span>
@@ -78,7 +79,7 @@
                                 {{-- <li><a href="#"><i class="far fa-random"></i></a> --}}
                             </ul>
                             <div class="wsus__product_details">
-                                <a class="wsus__category" href="#">{{$product->category->name}} </a>
+                                <a class="wsus__category" href="#">{{$product->category?->name}} </a>
                                 <p class="wsus__pro_rating">
                                     @php
                                     $avgRating = $product->reviews()->avg('rating');
@@ -120,6 +121,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
                     @endforeach
                 </div>
                 <div class="mt-5">
@@ -141,6 +143,7 @@
 @php
     $product = \App\Models\Product::find($item->product_id);
 @endphp
+@if ($product)
 
 <section class="product_popup_modal">
     <div class="modal fade" id="exampleModal-{{$product->id}}" tabindex="-1" aria-hidden="true">
@@ -250,7 +253,7 @@
                                     </ul>
                                 </form>
 
-                                <p class="brand_model"><span>brand :</span> {{$product->brand->name}}</p>
+                                <p class="brand_model"><span>brand :</span> {{$product->brand?->name}}</p>
 
                             </div>
                         </div>
@@ -260,6 +263,7 @@
         </div>
     </div>
 </section>
+@endif
 @endforeach
 <!--==========================
     PRODUCT MODAL VIEW END

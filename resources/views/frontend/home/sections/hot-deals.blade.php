@@ -95,7 +95,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-xl-6 col-lg-6">
-                        @if( isset($homepage_secion_banner_three) && $homepage_secion_banner_three->banner_one->status == 1)
+                        @if( $homepage_secion_banner_three?->banner_one?->status == 1)
                         <div class="wsus__single_banner_content banner_1">
                             <a href="{{$homepage_secion_banner_three->banner_one->banner_url}}">
                                 <img class="img-gluid" src="{{asset($homepage_secion_banner_three->banner_one->banner_image)}}" alt="">
@@ -106,7 +106,7 @@
                     <div class="col-xl-6 col-lg-6">
                         <div class="row">
                             <div class="col-12">
-                                @if( isset($homepage_secion_banner_three) && $homepage_secion_banner_three->banner_two->status == 1)
+                                @if( $homepage_secion_banner_three?->banner_two?->status == 1)
                                 <div class="wsus__single_banner_content single_banner_2">
                                     <a href="{{$homepage_secion_banner_three->banner_two->banner_url}}">
                                         <img class="img-gluid" src="{{asset($homepage_secion_banner_three->banner_two->banner_image)}}" alt="">
@@ -242,7 +242,7 @@
                                     </ul>
                                 </form>
 
-                                <p class="brand_model"><span>brand :</span> {{$product->brand->name}}</p>
+                                <p class="brand_model"><span>brand :</span> {{$product->brand?->name}}</p>
 
                             </div>
                         </div>

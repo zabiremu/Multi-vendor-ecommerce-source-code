@@ -36,7 +36,7 @@
             <div class="row">
                 <div class="col-xl-12">
                     <div class="wsus__pro_page_bammer">
-                        @if ($productpage_banner_section->banner_one->status == 1)
+                        @if ($productpage_banner_section?->banner_one?->status == 1)
                         <a href="{{$productpage_banner_section->banner_one->banner_url}}">
                             <img class="img-gluid" src="{{asset($productpage_banner_section->banner_one->banner_image)}}" alt="">
                         </a>
@@ -174,7 +174,7 @@
                                                 {{-- <li><a href="#"><i class="far fa-random"></i></a> --}}
                                             </ul>
                                             <div class="wsus__product_details">
-                                                <a class="wsus__category" href="#">{{$product->category->name}} </a>
+                                                <a class="wsus__category" href="#">{{$product->category?->name}} </a>
                                                 <p class="wsus__pro_rating">
                                                     @php
                                                     $avgRating = $product->reviews()->avg('rating');
@@ -245,7 +245,7 @@
                                                 " alt="product" class="img-fluid w-100 img_2" />
                                             </a>
                                             <div class="wsus__product_details">
-                                                <a class="wsus__category" href="#">{{@$product->category->name}} </a>
+                                                <a class="wsus__category" href="#">{{$product->category?->name}} </a>
                                                 <p class="wsus__pro_rating">
                                                     @php
                                                     $avgRating = $product->reviews()->avg('rating');

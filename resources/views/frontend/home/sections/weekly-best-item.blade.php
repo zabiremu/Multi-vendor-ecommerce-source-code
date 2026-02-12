@@ -61,7 +61,7 @@
                                     <img src="{{asset($item->thumb_image)}}" alt="bag" class="img-fluid w-100">
                                 </div>
                                 <div class="mt-2 wsus__hot_deals__single_text">
-                                    <h5>{!!limitText($item->name, )!!}</h5>
+                                    <h5>{!!limitText($item->name, 52)!!}</h5>
                                     <p class="wsus__rating">
                                         @php
                                         $avgRating = $item->reviews()->avg('rating');

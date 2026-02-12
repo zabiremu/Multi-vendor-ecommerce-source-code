@@ -97,6 +97,7 @@
 @php
     $product = \App\Models\Product::with('reviews')->find($item->product_id);
 @endphp
+@if ($product)
 
 <section class="product_popup_modal">
     <div class="modal fade" id="exampleModal-{{$product->id}}" tabindex="-1" aria-hidden="true">
@@ -206,7 +207,7 @@
                                     </ul>
                                 </form>
 
-                                <p class="brand_model"><span>brand :</span> {{$product->brand->name}}</p>
+                                <p class="brand_model"><span>brand :</span> {{$product->brand?->name}}</p>
 
                             </div>
                         </div>
@@ -216,8 +217,9 @@
         </div>
     </div>
 </section>
-
+@endif
 @endforeach
+
 <!--==========================
     PRODUCT MODAL VIEW END
 ===========================-->

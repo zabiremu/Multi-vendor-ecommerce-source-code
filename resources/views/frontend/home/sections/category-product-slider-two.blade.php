@@ -216,7 +216,7 @@
                                     </ul>
                                 </form>
 
-                                <p class="brand_model"><span>brand :</span> {{$product->brand->name}}</p>
+                                <p class="brand_model"><span>brand :</span> {{$product->brand?->name}}</p>
 
                             </div>
                         </div>
