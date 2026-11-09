@@ -11,16 +11,7 @@ use Yajra\DataTables\Transformers\FractalTransformer;
 class FractalServiceProvider extends ServiceProvider
 {
     /**
-     * Indicates if loading of the provider is deferred.
-     *
-     * @var bool
-     */
-    protected bool $defer = false;
-
-    /**
      * Bootstrap the application events.
-     *
-     * @return void
      */
     public function boot(): void
     {
@@ -32,8 +23,6 @@ class FractalServiceProvider extends ServiceProvider
 
     /**
      * Publish datatables assets.
-     *
-     * @return void
      */
     protected function publishAssets(): void
     {
@@ -46,25 +35,31 @@ class FractalServiceProvider extends ServiceProvider
 
     /**
      * Register DataTables macro methods.
-     *
-     * @return void
      */
     protected function registerMacro(): void
     {
         DataTableAbstract::macro('setTransformer', function ($transformer) {
-            $this->transformer = [$transformer];
+            $reflector = new \ReflectionClass($this);
+            $property = $reflector->getProperty('transformer');
+            $property->setValue($this, [$transformer]);
 
             return $this;
         });
 
         DataTableAbstract::macro('addTransformer', function ($transformer) {
-            $this->transformer[] = $transformer;
+            $reflector = new \ReflectionClass($this);
+            $property = $reflector->getProperty('transformer');
+            $currentValue = $property->getValue($this);
+            $currentValue[] = $transformer;
+            $property->setValue($this, $currentValue);
 
             return $this;
         });
 
         DataTableAbstract::macro('setSerializer', function ($serializer) {
-            $this->serializer = $serializer;
+            $reflector = new \ReflectionClass($this);
+            $property = $reflector->getProperty('serializer');
+            $property->setValue($this, $serializer);
 
             return $this;
         });
@@ -72,8 +67,6 @@ class FractalServiceProvider extends ServiceProvider
 
     /**
      * Register the service provider.
-     *
-     * @return void
      */
     public function register(): void
     {
@@ -83,8 +76,8 @@ class FractalServiceProvider extends ServiceProvider
             $request = $this->app['request'];
 
             $includesKey = $config->get('datatables-fractal.includes', 'include');
-            if ($request->get($includesKey)) {
-                $fractal->parseIncludes($request->get($includesKey));
+            if ($request->input($includesKey)) {
+                $fractal->parseIncludes($request->input($includesKey));
             }
 
             $serializer = $config->get('datatables-fractal.serializer', DataArraySerializer::class);
@@ -93,9 +86,7 @@ class FractalServiceProvider extends ServiceProvider
             return $fractal;
         });
 
-        $this->app->singleton('datatables.transformer', function () {
-            return new FractalTransformer($this->app->make('datatables.fractal'));
-        });
+        $this->app->singleton('datatables.transformer', fn () => new FractalTransformer($this->app->make('datatables.fractal')));
 
         $this->commands([
             TransformerMakeCommand::class,
@@ -104,8 +95,6 @@ class FractalServiceProvider extends ServiceProvider
 
     /**
      * Get the services provided by the provider.
-     *
-     * @return array
      */
     public function provides(): array
     {

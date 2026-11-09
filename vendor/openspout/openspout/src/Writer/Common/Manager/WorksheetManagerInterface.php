@@ -38,4 +38,17 @@ interface WorksheetManagerInterface
      * Closes the worksheet.
      */
     public function close(Worksheet $worksheet): void;
+
+    /**
+     * Suspends the worksheet's file handles without writing footers.
+     * Used when switching away from a sheet to prevent file handle accumulation.
+     * Counterpart to resumeSheet().
+     */
+    public function suspendSheet(Worksheet $worksheet): void;
+
+    /**
+     * Reopens the worksheet's file handles in append mode.
+     * Used when switching back to a previously closed sheet.
+     */
+    public function resumeSheet(Worksheet $worksheet): void;
 }

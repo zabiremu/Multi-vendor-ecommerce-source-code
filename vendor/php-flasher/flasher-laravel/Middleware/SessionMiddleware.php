@@ -1,39 +1,28 @@
 <?php
 
-/*
- * This file is part of the PHPFlasher package.
- * (c) Younes KHOUBZA <younes.khoubza@gmail.com>
- */
+declare(strict_types=1);
 
 namespace Flasher\Laravel\Middleware;
 
 use Flasher\Laravel\Http\Request;
 use Flasher\Laravel\Http\Response;
-use Flasher\Prime\Http\RequestExtension;
+use Flasher\Prime\Http\RequestExtensionInterface;
 use Illuminate\Http\Request as LaravelRequest;
-use Illuminate\Http\Response as LaravelResponse;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
-final class SessionMiddleware
+final readonly class SessionMiddleware
 {
-    /**
-     * @var RequestExtension
-     */
-    private $requestExtension;
-
-    public function __construct(RequestExtension $requestExtension)
+    public function __construct(private RequestExtensionInterface $requestExtension)
     {
-        $this->requestExtension = $requestExtension;
     }
 
-    /**
-     * @return LaravelResponse
-     */
-    public function handle(LaravelRequest $request, \Closure $next)
+    public function handle(LaravelRequest $request, \Closure $next): mixed
     {
-        /** @var LaravelResponse $response */
         $response = $next($request);
 
-        $this->requestExtension->flash(new Request($request), new Response($response));
+        if ($response instanceof SymfonyResponse) {
+            $this->requestExtension->flash(new Request($request), new Response($response));
+        }
 
         return $response;
     }

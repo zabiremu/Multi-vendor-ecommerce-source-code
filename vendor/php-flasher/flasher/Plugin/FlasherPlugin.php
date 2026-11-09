@@ -1,289 +1,451 @@
 <?php
 
-/*
- * This file is part of the PHPFlasher package.
- * (c) Younes KHOUBZA <younes.khoubza@gmail.com>
- */
+declare(strict_types=1);
 
 namespace Flasher\Prime\Plugin;
 
-use Flasher\Prime\Config\ConfigInterface;
-use Flasher\Prime\Notification\NotificationInterface;
+use Flasher\Prime\Factory\NotificationFactory;
+use Flasher\Prime\FlasherInterface;
+use Flasher\Prime\Notification\Type;
 
 /**
- * @phpstan-import-type ConfigType from ConfigInterface
+ * @phpstan-type ConfigType array{
+ *     default: string,
+ *     main_script: string,
+ *     public_path: string,
+ *     translate: bool,
+ *     inject_assets: bool,
+ *     excluded_paths: list<non-empty-string>,
+ *     scripts: string[],
+ *     styles: string[],
+ *     options: array<string, mixed>,
+ *     filter: array<string, mixed>,
+ *     flash_bag: false|array<string, string[]>,
+ *     presets: array<string, array{
+ *         type: string,
+ *         title: string,
+ *         message: string,
+ *         options: array<string, mixed>,
+ *     }>,
+ *     plugins: array<string, array{
+ *         scripts?: string[],
+ *         styles?: string[],
+ *         options?: array<string, mixed>,
+ *     }>,
+ * }
  */
 final class FlasherPlugin extends Plugin
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
+    public function getAlias(): string
     {
         return 'flasher';
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getServiceID()
+    public function getName(): string
     {
         return 'flasher';
     }
 
-    /**
-     * @return string
-     */
-    public function getDefault()
+    public function getServiceId(): string
     {
         return 'flasher';
     }
 
-    /**
-     * @return string|array{cdn: string, local: string}
-     */
-    public function getRootScript()
+    public function getFactory(): string
     {
-        return array(
-            'cdn' => 'https://cdn.jsdelivr.net/npm/@flasher/flasher@1.3.2/dist/flasher.min.js',
-            'local' => '/vendor/flasher/flasher.min.js',
-        );
+        return NotificationFactory::class;
     }
 
-    public function getScripts()
+    public function getServiceAliases(): string
     {
-        $rootScript = $this->getRootScript();
-
-        return array(
-            'cdn' => is_string($rootScript) ? array($rootScript) : array($rootScript['cdn']),
-            'local' => is_string($rootScript) ? '' : array($rootScript['local']),
-        );
+        return FlasherInterface::class;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getStyles()
+    public function getDefault(): string
     {
-        return array(
-            'cdn' => array(
-                'https://cdn.jsdelivr.net/npm/@flasher/flasher@1.3.2/dist/flasher.min.css',
-            ),
-            'local' => array(
-                '/vendor/flasher/flasher.min.css',
-            ),
-        );
+        return 'flasher';
+    }
+
+    public function getRootScript(): string
+    {
+        return '/vendor/flasher/flasher.min.js';
     }
 
     /**
-     * @return string
+     * @return string[]
      */
-    public function getResourcesDir()
+    public function getScripts(): array
     {
-        return realpath(__DIR__.'/../Resources') ?: '';
+        return [];
     }
 
-    /**
-     * @return array<string, string[]>
-     */
-    public function getFlashBagMapping()
+    public function getStyles(): string
     {
-        return array(
-            'success' => array('success'),
-            'error' => array('error', 'danger'),
-            'warning' => array('warning', 'alarm'),
-            'info' => array('info', 'notice', 'alert'),
-        );
+        return '/vendor/flasher/flasher.min.css';
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function processConfiguration(array $options = array())
+    public function normalizeConfig(array $config = []): array
     {
-        $options = $this->normalizeConfig($options); // @phpstan-ignore-line
+        $config = parent::normalizeConfig($config);
 
-        return array_merge(array(
-            'default' => $this->getDefault(),
-            'root_script' => $this->getRootScript(),
-            'scripts' => array(),
-            'styles' => $this->getStyles(),
-            'options' => array(),
-            'use_cdn' => true,
-            'auto_translate' => true,
-            'auto_render' => true,
-            'flash_bag' => array(
-                'enabled' => true,
-                'mapping' => $this->getFlashBagMapping(),
-            ),
-            'filter_criteria' => array(),
-        ), $options);
+        $config = $this->normalizePlugins($config);
+        $config = $this->normalizeThemes($config);
+        $config = $this->normalizePresets($config);
+        $config = $this->addDefaultConfig($config);
+        $config = $this->normalizeFlashBag($config);
+        $config = $this->setPresetsDefaults($config);
+
+        return $config;
     }
 
     /**
      * @param array{
-     *    root_script?: string|array,
-     *    styles?: string|array,
-     *    scripts ?: string|array,
-     *    template_factory?: array{default: string, templates: array<string, array<string, string>>},
-     *    auto_create_from_session?: bool,
-     *    auto_render?: bool,
-     *    types_mapping?: array<string, string>,
-     *    observer_events?: array<string, string>,
-     *    translate_by_default?: bool,
-     *        presets?: array<string, array{
-     *        type: string,
-     *        title: string,
-     *        message: string,
-     *        options: array<string, mixed>,
-     *    }>,
+     *     scripts: string[],
+     *     styles: string[],
+     *     options: array<string, mixed>,
+     *     plugins?: array<string, array{
+     *         scripts?: string[],
+     *         styles?: string[],
+     *         options?: array<string, mixed>,
+     *     }>,
      * } $config
      *
-     * @phpstan-return ConfigType
+     * @return array{
+     *     scripts: string[],
+     *     styles: string[],
+     *     options: array<string, mixed>,
+     *     plugins: array<string, mixed>,
+     * }
      */
-    public function normalizeConfig(array $config)
+    private function normalizePlugins(array $config): array
     {
-        if (isset($config['root_script']) && is_string($config['root_script'])) {
-            $config['root_script'] = array(
-                'local' => $config['root_script'],
-                'cdn' => $config['root_script'],
+        if (!isset($config['plugins']['flasher'])) {
+            $config['plugins']['flasher'] = [
+                'scripts' => [],
+                'styles' => [],
+                'options' => [],
+            ];
+        }
+
+        if (!empty($config['scripts'])) {
+            $config['plugins']['flasher']['scripts'] = array_merge(
+                $config['plugins']['flasher']['scripts'] ?? [],
+                $config['scripts']
             );
         }
 
-        if (isset($config['styles'])) {
-            if (is_string($config['styles'])) {
-                $config['styles'] = array('cdn' => $config['styles'], 'local' => $config['styles']);
+        if (!empty($config['styles'])) {
+            $config['plugins']['flasher']['styles'] = array_merge(
+                $config['plugins']['flasher']['styles'] ?? [],
+                $config['styles']
+            );
+        }
+
+        if (!empty($config['options'])) {
+            $config['plugins']['flasher']['options'] = array_merge(
+                $config['options'],
+                $config['plugins']['flasher']['options'] ?? []
+            );
+        }
+
+        foreach ($config['plugins'] as $name => $options) {
+            if (isset($options['scripts'])) {
+                $config['plugins'][$name]['scripts'] = (array) $options['scripts'];
             }
 
-            $config['styles'] = array_merge(array('cdn' => array(), 'local' => array()), $config['styles']);
-
-            $config['styles']['cdn'] = (array) $config['styles']['cdn'];
-            $config['styles']['local'] = (array) $config['styles']['local'];
+            if (isset($options['styles'])) {
+                $config['plugins'][$name]['styles'] = (array) $options['styles'];
+            }
         }
 
-        if (isset($config['scripts'])) {
-            if (is_string($config['scripts'])) {
-                $config['scripts'] = array('cdn' => $config['scripts'], 'local' => $config['scripts']);
+        return $config;
+    }
+
+    /**
+     * @param array{
+     *     scripts: string[],
+     *     styles: string[],
+     *     options: array<string, mixed>,
+     *     plugins: array<string, mixed>,
+     *     themes?: array<string, array{
+     *         scripts?: string[],
+     *         styles?: string[],
+     *         options?: array<string, mixed>,
+     *     }>,
+     * } $config
+     *
+     * @return array{
+     *     scripts: string[],
+     *     styles: string[],
+     *     options: array<string, mixed>,
+     *     plugins: array<string, mixed>,
+     *     themes: array<string, mixed>,
+     * }
+     */
+    private function normalizeThemes(array $config): array
+    {
+        // Define default themes with their assets
+        $defaultThemes = $this->getDefaultThemes();
+
+        // Initialize themes config if not set
+        if (!isset($config['themes'])) {
+            $config['themes'] = [];
+        }
+
+        // Merge default themes with user-defined themes, prioritizing user configs
+        foreach ($defaultThemes as $themeName => $themeConfig) {
+            if (!isset($config['themes'][$themeName])) {
+                $config['themes'][$themeName] = $themeConfig;
+            } else {
+                // Make sure all required theme properties exist
+                if (!isset($config['themes'][$themeName]['scripts'])) {
+                    $config['themes'][$themeName]['scripts'] = $themeConfig['scripts'];
+                }
+                if (!isset($config['themes'][$themeName]['styles'])) {
+                    $config['themes'][$themeName]['styles'] = $themeConfig['styles'];
+                }
+                if (!isset($config['themes'][$themeName]['options'])) {
+                    $config['themes'][$themeName]['options'] = $themeConfig['options'];
+                }
+            }
+        }
+
+        // Normalize theme configs
+        foreach ($config['themes'] as $name => $options) {
+            if (isset($options['scripts'])) {
+                $config['themes'][$name]['scripts'] = (array) $options['scripts'];
+            }
+            if (isset($options['styles'])) {
+                $config['themes'][$name]['styles'] = (array) $options['styles'];
+            }
+            if (!isset($options['options'])) {
+                $config['themes'][$name]['options'] = [];
+            }
+        }
+
+        return $config;
+    }
+
+    /**
+     * @param array{
+     *     scripts: string[],
+     *     styles: string[],
+     *     options: array<string, mixed>,
+     *     presets?: array<string, string|array<string, mixed>>,
+     *     plugins: array<string, mixed>,
+     * } $config
+     *
+     * @return array{
+     *     scripts: string[],
+     *     styles: string[],
+     *     options: array<string, mixed>,
+     *     presets?: array<string, array<string, mixed>>,
+     *     plugins: array<string, mixed>,
+     * }
+     */
+    private function normalizePresets(array $config): array
+    {
+        foreach ($config['presets'] ?? [] as $name => $options) {
+            if (\is_string($options)) {
+                $options = ['message' => $options];
             }
 
-            $config['scripts'] = array_merge(array('cdn' => array(), 'local' => array()), $config['scripts']);
-
-            $config['scripts']['cdn'] = (array) $config['scripts']['cdn'];
-            $config['scripts']['local'] = (array) $config['scripts']['local'];
+            $config['presets'][$name] = $options;
         }
-
-        $deprecatedKeys = array();
-
-        if (isset($config['template_factory']['default'])) {
-            $deprecatedKeys[] = 'template_factory.default';
-            unset($config['template_factory']['default']);
-        }
-
-        if (isset($config['template_factory']['templates'])) {
-            $deprecatedKeys[] = 'template_factory.templates';
-            $config['themes'] = $config['template_factory']['templates'];
-            unset($config['template_factory']['templates']);
-        }
-
-        unset($config['template_factory']);
-
-        if (isset($config['themes']['flasher']['options'])) {
-            $deprecatedKeys[] = 'themes.flasher.options';
-            $config['options'] = $config['themes']['flasher']['options'];
-            unset($config['themes']['flasher']['options']);
-        }
-
-        if (isset($config['auto_create_from_session'])) {
-            $deprecatedKeys[] = 'auto_create_from_session';
-            $config['flash_bag']['enabled'] = $config['auto_create_from_session'];
-            unset($config['auto_create_from_session']);
-        }
-
-        if (isset($config['types_mapping'])) {
-            $deprecatedKeys[] = 'types_mapping';
-            $config['flash_bag']['mapping'] = $config['types_mapping'];
-            unset($config['types_mapping']);
-        }
-
-        if (isset($config['observer_events'])) {
-            $deprecatedKeys[] = 'observer_events';
-            unset($config['observer_events']);
-        }
-
-        if (isset($config['translate_by_default'])) {
-            $deprecatedKeys[] = 'translate_by_default';
-            $config['auto_translate'] = $config['translate_by_default'];
-            unset($config['translate_by_default']);
-        }
-
-        if (array() !== $deprecatedKeys) {
-            @trigger_error(sprintf('Since php-flasher/flasher-laravel v1.0: The following configuration keys are deprecated and will be removed in v2.0: %s. Please use the new configuration structure.', implode(', ', $deprecatedKeys)), \E_USER_DEPRECATED);
-        }
-
-        if (\array_key_exists('flash_bag', $config)) {
-            $config['flash_bag'] = $this->normalizeFlashBagConfig($config['flash_bag']);
-        }
-
-        $config['presets'] = array_merge(array(
-            'created' => array(
-                'type' => NotificationInterface::SUCCESS,
-                'message' => 'The resource was created',
-            ),
-            'updated' => array(
-                'type' => NotificationInterface::SUCCESS,
-                'message' => 'The resource was updated',
-            ),
-            'saved' => array(
-                'type' => NotificationInterface::SUCCESS,
-                'message' => 'The resource was saved',
-            ),
-            'deleted' => array(
-                'type' => NotificationInterface::SUCCESS,
-                'message' => 'The resource was deleted',
-            ),
-        ), isset($config['presets']) ? $config['presets'] : array());
 
         return $config; // @phpstan-ignore-line
     }
 
     /**
-     * @param mixed $config
+     * @param array{
+     *     default?: string|null,
+     *     main_script?: string|null,
+     *     public_path?: string,
+     *     translate?: bool,
+     *     inject_assets?: bool,
+     *     excluded_paths?: list<non-empty-string>,
+     *     filter?: array<string, mixed>,
+     *     scripts: string[],
+     *     styles: string[],
+     *     options: array<string, mixed>,
+     *     presets?: array<string, array<string, mixed>>,
+     *     plugins: array<string, mixed>,
+     * } $config
      *
-     * @return array<string, mixed>
+     * @return array{
+     *     default: string|null,
+     *     main_script: string|null,
+     *     public_path: string,
+     *     translate: bool,
+     *     inject_assets: bool,
+     *     excluded_paths?: list<non-empty-string>,
+     *     filter: array<string, mixed>,
+     *     scripts: string[],
+     *     styles: string[],
+     *     options: array<string, mixed>,
+     *     presets: array<string, array<string, mixed>>,
+     *     plugins: array<string, mixed>,
+     * }
      */
-    private function normalizeFlashBagConfig($config)
+    private function addDefaultConfig(array $config): array
     {
-        if (null === $config || false === $config) {
-            return array('enabled' => false);
+        $defaultPresets = [
+            'created' => ['type' => Type::SUCCESS, 'message' => 'The resource was created'],
+            'updated' => ['type' => Type::SUCCESS, 'message' => 'The resource was updated'],
+            'saved' => ['type' => Type::SUCCESS, 'message' => 'The resource was saved'],
+            'deleted' => ['type' => Type::SUCCESS, 'message' => 'The resource was deleted'],
+        ];
+
+        $config['default'] = \array_key_exists('default', $config) ? $config['default'] : $this->getDefault();
+        $config['main_script'] = \array_key_exists('main_script', $config) ? $config['main_script'] : $this->getRootScript();
+        $config['public_path'] = \array_key_exists('public_path', $config) ? $config['public_path'] : '';
+        $config['translate'] = \array_key_exists('translate', $config) ? $config['translate'] : true;
+        $config['inject_assets'] = \array_key_exists('inject_assets', $config) ? $config['inject_assets'] : true;
+        $config['filter'] = \array_key_exists('filter', $config) ? $config['filter'] : [];
+        $config['presets'] = \array_key_exists('presets', $config) ? $config['presets'] : $defaultPresets;
+
+        return $config;
+    }
+
+    /**
+     * @param array{
+     *     default: string|null,
+     *     main_script: string|null,
+     *     public_path: string,
+     *     translate: bool,
+     *     inject_assets: bool,
+     *     excluded_paths?: list<non-empty-string>,
+     *     filter: array<string, mixed>,
+     *     scripts: string[],
+     *     styles: string[],
+     *     options: array<string, mixed>,
+     *     presets: array<string, array<string, mixed>>,
+     *     plugins: array<string, mixed>,
+     *     flash_bag?: bool|array<string, string[]>,
+     * } $config
+     *
+     * @return array{
+     *      default: string|null,
+     *      main_script: string|null,
+     *      public_path: string,
+     *      translate: bool,
+     *      inject_assets: bool,
+     *      excluded_paths?: list<non-empty-string>,
+     *      filter: array<string, mixed>,
+     *      scripts: string[],
+     *      styles: string[],
+     *      options: array<string, mixed>,
+     *      presets: array<string, array<string, mixed>>,
+     *      plugins: array<string, mixed>,
+     *      flash_bag: false|array<string, string[]>,
+     * }
+     */
+    private function normalizeFlashBag(array $config): array
+    {
+        $mapping = [
+            'success' => ['success'],
+            'error' => ['error', 'danger'],
+            'warning' => ['warning', 'alarm'],
+            'info' => ['info', 'notice', 'alert'],
+        ];
+
+        if (!\array_key_exists('flash_bag', $config) || true === $config['flash_bag']) {
+            $config['flash_bag'] = $mapping;
         }
 
-        if (!\is_array($config) || !\array_key_exists('mapping', $config) || !\is_array($config['mapping'])) {
-            return array('enabled' => true);
+        if (false === $config['flash_bag']) {
+            return $config;
         }
 
-        $mapping = $config['mapping'];
+        $config['flash_bag'] = array_merge($mapping, $config['flash_bag']);
 
-        foreach ($mapping as $key => $values) {
-            if (!\is_string($key)) {
-                continue;
-            }
+        return $config;
+    }
 
-            if (!\is_array($values)) {
-                $mapping[$key] = array($values);
-            }
-
-            foreach ($mapping[$key] as $index => $value) {
-                if (!\is_string($value)) {
-                    unset($mapping[$key][$index]);
-                }
-            }
-
-            $mapping[$key] = array_values($mapping[$key]);
+    /**
+     * @param array{
+     *      default: string|null,
+     *      main_script: string|null,
+     *      public_path: string,
+     *      translate: bool,
+     *      inject_assets: bool,
+     *      excluded_paths?: list<non-empty-string>,
+     *      filter: array<string, mixed>,
+     *      scripts: string[],
+     *      styles: string[],
+     *      options: array<string, mixed>,
+     *      presets: array<string, array<string, mixed>>,
+     *      plugins: array<string, mixed>,
+     *      flash_bag: false|array<string, string[]>,
+     * } $config
+     *
+     * @return array{
+     *      default: string|null,
+     *      main_script: string|null,
+     *      public_path: string,
+     *      translate: bool,
+     *      inject_assets: bool,
+     *      excluded_paths?: list<non-empty-string>,
+     *      filter: array<string, mixed>,
+     *      scripts: string[],
+     *      styles: string[],
+     *      options: array<string, mixed>,
+     *      presets: array<string, array<string, mixed>>,
+     *      plugins: array<string, mixed>,
+     *      flash_bag: false|array<string, string[]>,
+     * }
+     */
+    private function setPresetsDefaults(array $config): array
+    {
+        foreach ($config['presets'] as $name => $options) {
+            $config['presets'][$name]['type'] ??= Type::INFO;
+            $config['presets'][$name]['options'] ??= [];
         }
 
-        return array(
-            'enabled' => true,
-            'mapping' => $mapping,
-        );
+        return $config;
+    }
+
+    private const DEFAULT_THEME_NAMES = [
+        'amazon',
+        'amber',
+        'jade',
+        'crystal',
+        'emerald',
+        'sapphire',
+        'ruby',
+        'onyx',
+        'neon',
+        'aurora',
+        'minimal',
+        'material',
+        'google',
+        'ios',
+        'slack',
+        'facebook',
+    ];
+
+    /**
+     * @return array<string, array{
+     *     scripts: string[],
+     *     styles: string[],
+     *     options: array<string, mixed>
+     * }>
+     */
+    private function getDefaultThemes(): array
+    {
+        $themes = [];
+
+        foreach (self::DEFAULT_THEME_NAMES as $name) {
+            $themes[$name] = [
+                'scripts' => ["/vendor/flasher/themes/{$name}/{$name}.min.js"],
+                'styles' => [
+                    '/vendor/flasher/flasher.min.css',
+                    "/vendor/flasher/themes/{$name}/{$name}.min.css",
+                ],
+                'options' => [],
+            ];
+        }
+
+        return $themes;
     }
 }

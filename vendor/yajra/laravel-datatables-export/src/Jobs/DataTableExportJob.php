@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yajra\DataTables\Jobs;
 
 use Carbon\Carbon;
@@ -9,7 +11,7 @@ use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Http\File;
 use Illuminate\Queue\InteractsWithQueue;
@@ -21,89 +23,117 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use LogicException;
 use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
-use OpenSpout\Writer\Common\Creator\WriterFactory;
+use OpenSpout\Common\Exception\IOException;
+use OpenSpout\Common\Exception\UnsupportedTypeException;
+use OpenSpout\Writer\CSV\Writer as CSVWriter;
+use OpenSpout\Writer\Exception\InvalidSheetNameException;
+use OpenSpout\Writer\Exception\WriterNotOpenedException;
+use OpenSpout\Writer\ODS\Writer as ODSWriter;
+use OpenSpout\Writer\WriterInterface;
 use OpenSpout\Writer\XLSX\Helper\DateHelper;
 use OpenSpout\Writer\XLSX\Writer as XLSXWriter;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use Throwable;
+use Yajra\DataTables\Events\ExportCompleted;
+use Yajra\DataTables\Events\ExportFailed;
+use Yajra\DataTables\Events\ExportStarted;
 use Yajra\DataTables\Html\Column;
+use Yajra\DataTables\QueryDataTable;
 use Yajra\DataTables\Services\DataTable;
+use Yajra\DataTables\Support\OpenSpoutExportStyle;
+use Yajra\DataTables\Support\QueuedExportProgress;
 
-class DataTableExportJob implements ShouldQueue, ShouldBeUnique
+class DataTableExportJob implements ShouldBeUnique, ShouldQueue
 {
+    use Batchable;
     use Dispatchable;
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
-    use Batchable;
 
-    public string $dataTable = '';
+    /**
+     * @var class-string<DataTable>
+     */
+    public string $dataTable;
 
     public array $attributes = [];
 
-    public array $request = [];
-
-    public string $sheetName = '';
+    /**
+     * @var array<string, Style>
+     */
+    public array $formatStyles = [];
 
     /**
-     * @var int|string
+     * @param  array{class-string<DataTable>, array}  $instance
      */
-    public $user;
-
-    /**
-     * Create a new job instance.
-     *
-     * @param  array  $dataTable
-     * @param  array  $request
-     * @param  int|string  $user
-     * @param  string  $sheetName
-     */
-    public function __construct(array $dataTable, array $request, $user, string $sheetName = 'Sheet1')
-    {
-        $this->dataTable = $dataTable[0];
-        $this->attributes = $dataTable[1];
-        $this->request = $request;
-        $this->user = $user;
-        $this->sheetName = $sheetName;
+    public function __construct(
+        array $instance,
+        public array $request,
+        public int|string|null $user,
+        public string $sheetName = 'Sheet1',
+        public string $downloadFilename = '',
+    ) {
+        $this->dataTable = $instance[0];
+        $this->attributes = $instance[1];
     }
 
     /**
      * Execute the job.
      *
-     * @return void
-     *
-     * @throws \OpenSpout\Common\Exception\IOException
-     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
-     * @throws \OpenSpout\Writer\Exception\WriterNotOpenedException
-     * @throws \OpenSpout\Writer\Exception\InvalidSheetNameException
+     * @throws IOException
+     * @throws UnsupportedTypeException
+     * @throws WriterNotOpenedException
+     * @throws InvalidSheetNameException
      */
-    public function handle()
+    public function handle(): void
     {
-        if ($this->user) {
+        if ($this->user !== null) {
             Event::forget(Login::class);
             Auth::loginUsingId($this->user);
         }
 
         /** @var DataTable $oTable */
         $oTable = resolve($this->dataTable);
-        request()->merge($this->request);
+        request()->replace($this->request);
 
-        $query = app()->call([$oTable->with($this->attributes), 'query']);
+        $type = $this->getExportType();
+        $storedFilename = $this->getBatchId().'.'.$type;
+        $downloadFilename = $this->downloadFilename ?: $storedFilename;
 
-        /** @var \Yajra\DataTables\QueryDataTable $dataTable */
-        $dataTable = app()->call([$oTable, 'dataTable'], compact('query'));
+        Event::dispatch(new ExportStarted(
+            $this->getBatchId(),
+            $this->dataTable,
+            $this->user,
+            $type,
+            $this->getDownloadDisk(),
+            $storedFilename,
+            $downloadFilename,
+        ));
+
+        $tableWithAttributes = $oTable->with($this->attributes);
+        $queryCallable = [$tableWithAttributes, 'query'];
+        if (! is_callable($queryCallable)) {
+            throw new LogicException('DataTable::query must be callable.');
+        }
+        $query = app()->call($queryCallable);
+
+        $dataTableCallable = [$oTable, 'dataTable'];
+        if (! is_callable($dataTableCallable)) {
+            throw new LogicException('DataTable::dataTable must be callable.');
+        }
+        /** @var QueryDataTable $dataTable */
+        $dataTable = app()->call($dataTableCallable, compact('query'));
         $dataTable->skipPaging();
 
-        $exportType = strtolower(strval(request('exportType')));
-
-        $type = Str::startsWith($exportType, 'csv') ? 'csv' : 'xlsx';
-        $filename = $this->batchId.'.'.$type;
+        $filename = $storedFilename;
 
         $path = Storage::disk($this->getDisk())->path($filename);
 
-        $writer = WriterFactory::createFromFile($filename);
+        $writer = $this->createWriterForExtension(strtolower(pathinfo($filename, PATHINFO_EXTENSION)));
         $writer->openToFile($path);
 
         if ($writer instanceof XLSXWriter) {
@@ -121,23 +151,31 @@ class DataTableExportJob implements ShouldQueue, ShouldBeUnique
 
         $writer->addRow(Row::fromValues($headers));
 
+        $filteredQuery = $dataTable->getFilteredQuery();
+        $totalRows = $dataTable->filteredCount();
+
         if ($this->usesLazyMethod()) {
-            $chunkSize = intval(config('datatables-export.chunk', 1000));
-            $query = $dataTable->getFilteredQuery()->lazy($chunkSize);
+            $chunkSize = 1_000;
+            if (is_int(config('datatables-export.chunk'))) {
+                $chunkSize = config('datatables-export.chunk');
+            }
+            $query = $filteredQuery->lazy($chunkSize);
         } else {
-            $query = $dataTable->getFilteredQuery()->cursor();
+            $query = $filteredQuery->cursor();
         }
+
+        $processedRows = 0;
+        $reportedProgress = 0;
 
         foreach ($query as $row) {
             $cells = [];
 
-            $row = $row instanceof Arrayable ? $row->toArray() : (array) $row;
-
-            if ($this->usesLazyMethod() && is_array($row)) {
-                $row = Arr::dot($row);
+            $defaultDateFormat = 'yyyy-mm-dd';
+            if (config('datatables-export.default_date_format')
+                && is_string(config('datatables-export.default_date_format'))
+            ) {
+                $defaultDateFormat = config('datatables-export.default_date_format');
             }
-
-            $defaultDateFormat = strval(config('datatables-export.default_date_format', 'yyyy-mm-dd'));
 
             $columns->map(function (Column $column) use ($row, &$cells, $defaultDateFormat) {
                 $property = $column->data;
@@ -148,7 +186,12 @@ class DataTableExportJob implements ShouldQueue, ShouldBeUnique
                 }
 
                 /** @var array|bool|int|string|null|DateTimeInterface $value */
-                $value = $row[$property] ?? '';
+                $value = $this->getValue($row, $property);
+
+                if (isset($column->exportRender)) {
+                    $callback = $column->exportRender;
+                    $value = $callback($row, $value);
+                }
 
                 if (is_array($value)) {
                     $value = json_encode($value);
@@ -156,15 +199,27 @@ class DataTableExportJob implements ShouldQueue, ShouldBeUnique
 
                 switch (true) {
                     case $this->wantsText($column):
-                        $cellValue = strval($value);
+                        if ($value instanceof DateTimeInterface) {
+                            $cellValue = $value->format($defaultDateFormat);
+                        } else {
+                            $cellValue = strval($value);
+                        }
                         $format = $column->exportFormat ?? '@';
                         break;
                     case $this->wantsDateFormat($column):
-                        $cellValue = $value ? DateHelper::toExcel(Carbon::parse(strval($value))) : '';
+                        if ($value instanceof DateTimeInterface) {
+                            $cellValue = DateHelper::toExcel($value);
+                        } else {
+                            $cellValue = $value ? DateHelper::toExcel(Carbon::parse(strval($value))) : '';
+                        }
                         $format = $column->exportFormat ?? $defaultDateFormat;
                         break;
                     case $this->wantsNumeric($column):
-                        $cellValue = floatval($value);
+                        if ($value instanceof DateTimeInterface) {
+                            $cellValue = 0.0;
+                        } else {
+                            $cellValue = floatval($value);
+                        }
                         $format = $column->exportFormat;
                         break;
                     case $value instanceof DateTimeInterface:
@@ -176,10 +231,18 @@ class DataTableExportJob implements ShouldQueue, ShouldBeUnique
                         $format = $column->exportFormat ?? NumberFormat::FORMAT_GENERAL;
                 }
 
-                $cells[] = Cell::fromValue($cellValue, (new Style)->setFormat($format));
+                $cells[] = Cell::fromValue($cellValue, $this->styleForExportFormat($format));
             });
 
             $writer->addRow(new Row($cells));
+
+            $processedRows++;
+            if ($totalRows > 0) {
+                $progress = min(99, (int) floor(($processedRows / $totalRows) * 100));
+                if ($progress > $reportedProgress) {
+                    $reportedProgress = QueuedExportProgress::report($this->getBatchId(), $processedRows, $totalRows);
+                }
+            }
         }
 
         $writer->close();
@@ -188,23 +251,74 @@ class DataTableExportJob implements ShouldQueue, ShouldBeUnique
             Storage::disk($this->getS3Disk())->putFileAs('', (new File($path)), $filename);
         }
 
-        if (request('emailTo')) {
-            $data = ['email' => urldecode(strval(request('emailTo'))), 'path' => $path];
+        $emailTo = request('emailTo', request('email_to'));
+        if ($emailTo && is_string($emailTo)) {
+            $data = ['email' => urldecode($emailTo), 'path' => $path];
             $this->sendResults($data);
         }
+
+        Event::dispatch(new ExportCompleted(
+            $this->getBatchId(),
+            $this->dataTable,
+            $this->user,
+            $type,
+            $this->getDownloadDisk(),
+            $storedFilename,
+            $downloadFilename,
+        ));
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        $type = $this->getExportType();
+        $storedFilename = $this->getBatchId().'.'.$type;
+
+        Event::dispatch(new ExportFailed(
+            $this->getBatchId(),
+            $this->dataTable,
+            $this->user,
+            $type,
+            $this->getDownloadDisk(),
+            $storedFilename,
+            $this->downloadFilename ?: $storedFilename,
+            $exception,
+        ));
     }
 
     /**
-     * @return string
+     * @throws UnsupportedTypeException
      */
+    protected function createWriterForExtension(string $extension): WriterInterface
+    {
+        return match ($extension) {
+            'csv' => new CSVWriter,
+            'xlsx' => new XLSXWriter,
+            'ods' => new ODSWriter,
+            default => throw new UnsupportedTypeException('No writers supporting the given type: '.$extension),
+        };
+    }
+
+    protected function styleForExportFormat(mixed $format): ?Style
+    {
+        if (! is_string($format) || $format === '') {
+            return null;
+        }
+
+        return $this->formatStyles[$format] ??= OpenSpoutExportStyle::forFormat($format);
+    }
+
     protected function getDisk(): string
     {
-        return strval(config('datatables-export.disk', 'local'));
+        $disk = 'local';
+        if (is_string(config('datatables-export.disk'))) {
+            $disk = config('datatables-export.disk');
+        }
+
+        return $disk;
     }
 
     /**
-     * @param  \Yajra\DataTables\Services\DataTable  $dataTable
-     * @return \Illuminate\Support\Collection<array-key, Column>
+     * @return Collection<array-key, Column>
      */
     protected function getExportableColumns(DataTable $dataTable): Collection
     {
@@ -213,18 +327,33 @@ class DataTableExportJob implements ShouldQueue, ShouldBeUnique
         return $columns->filter(fn (Column $column) => $column->exportable);
     }
 
-    /**
-     * @return bool
-     */
+    protected function getValue(array|Model|\stdClass $row, string $property): mixed
+    {
+        $segments = preg_split('/\[(.*?)\]\.?/', $property, 2, PREG_SPLIT_DELIM_CAPTURE);
+        if ($segments === false) {
+            $segments = [];
+        }
+        [$currentProperty, $glue, $childProperty] = array_pad($segments, 3, null);
+
+        if ($glue === '') {
+            $glue = ', ';
+        }
+
+        /** @var string $currentProperty */
+        $value = data_get($row, $currentProperty.($childProperty ? '.*' : ''));
+
+        if ($childProperty) {
+            $value = Arr::map($value, fn ($v) => $this->getValue($v, $childProperty));
+        }
+
+        return isset($glue) ? Arr::join($value, $glue) : $value;
+    }
+
     protected function usesLazyMethod(): bool
     {
         return config('datatables-export.method', 'lazy') === 'lazy';
     }
 
-    /**
-     * @param  \Yajra\DataTables\Html\Column  $column
-     * @return bool
-     */
     protected function wantsText(Column $column): bool
     {
         if (! isset($column['exportFormat'])) {
@@ -234,10 +363,6 @@ class DataTableExportJob implements ShouldQueue, ShouldBeUnique
         return in_array($column['exportFormat'], (array) config('datatables-export.text_formats', ['@']));
     }
 
-    /**
-     * @param  \Yajra\DataTables\Html\Column  $column
-     * @return bool
-     */
     protected function wantsDateFormat(Column $column): bool
     {
         if (! isset($column['exportFormat'])) {
@@ -250,10 +375,6 @@ class DataTableExportJob implements ShouldQueue, ShouldBeUnique
         return in_array($column['exportFormat'], $formats);
     }
 
-    /**
-     * @param  \Yajra\DataTables\Html\Column  $column
-     * @return bool
-     */
     protected function wantsNumeric(Column $column): bool
     {
         return Str::contains($column->exportFormat, ['0', '#']);
@@ -261,7 +382,6 @@ class DataTableExportJob implements ShouldQueue, ShouldBeUnique
 
     /**
      * @param  int|bool|string|null  $value
-     * @return bool
      */
     protected function isNumeric($value): bool
     {
@@ -273,24 +393,39 @@ class DataTableExportJob implements ShouldQueue, ShouldBeUnique
         return is_numeric($value);
     }
 
-    /**
-     * @return string
-     */
     protected function getS3Disk(): string
     {
-        return strval(config('datatables-export.s3_disk', ''));
+        $disk = '';
+        if (config('datatables-export.s3_disk') && is_string(config('datatables-export.s3_disk'))) {
+            $disk = config('datatables-export.s3_disk');
+        }
+
+        return $disk;
     }
 
-    /**
-     * @param  array  $data
-     * @return void
-     */
+    protected function getDownloadDisk(): string
+    {
+        return $this->getS3Disk() ?: $this->getDisk();
+    }
+
+    protected function getExportType(): string
+    {
+        $exportType = $this->request['export_type'] ?? $this->request['exportType'] ?? 'xlsx';
+
+        return is_string($exportType) && Str::startsWith(Str::lower($exportType), 'csv') ? 'csv' : 'xlsx';
+    }
+
+    protected function getBatchId(): string
+    {
+        return is_string($this->batchId) ? $this->batchId : '';
+    }
+
     public function sendResults(array $data): void
     {
         Mail::send('datatables-export::export-email', $data, function ($message) use ($data) {
             $message->attach($data['path']);
             $message->to($data['email'])
-                    ->subject('Export Report');
+                ->subject('Export Report');
             $message->from(config('datatables-export.mail_from'));
         });
     }

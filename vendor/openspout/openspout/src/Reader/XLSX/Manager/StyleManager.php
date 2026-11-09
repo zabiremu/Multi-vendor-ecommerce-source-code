@@ -109,6 +109,11 @@ class StyleManager implements StyleManagerInterface
 
         $styleAttributes = $stylesAttributes[$styleId];
         $numFmtId = $styleAttributes[self::XML_ATTRIBUTE_NUM_FMT_ID];
+
+        if (null === $numFmtId) {
+            return '';
+        }
+
         \assert(\is_int($numFmtId));
 
         if ($this->isNumFmtIdBuiltInDateFormat($numFmtId)) {
@@ -306,6 +311,13 @@ class StyleManager implements StyleManagerInterface
 
         // Remove strings in double quotes, as they won't be interpreted as date format characters
         $formatCode = preg_replace('/"[^"]+"/', '', $formatCode);
+        \assert(null !== $formatCode);
+
+        // Scientific notation formats (e.g. "0.00E+00" or "0,00E+00") use an exponent code:
+        // "E" or "e", optionally followed by "+" or "-" and digit placeholders ("0", "#" or "?").
+        // Remove it, as it must not be mistaken for the "e" date format character (era year).
+        // @see ECMA-376 Part 1 §18.8.30 - "Currency, percentages, and scientific notation"
+        $formatCode = preg_replace('/(?<!\\\)[eE][+-]?[0#?]+/', '', $formatCode);
         \assert(null !== $formatCode);
 
         // custom date formats contain specific characters to represent the date:

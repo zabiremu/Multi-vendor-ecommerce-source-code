@@ -5,10 +5,11 @@ namespace Yajra\DataTables\Html\Editor\Fields;
 use Closure;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
-use Illuminate\Support\Fluent;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
+use Yajra\DataTables\Html\Fluent;
 use Yajra\DataTables\Html\HasAuthorizations;
 
 /**
@@ -21,8 +22,6 @@ class Field extends Fluent
 
     /**
      * Field type.
-     *
-     * @var string
      */
     protected string $type = 'text';
 
@@ -33,17 +32,13 @@ class Field extends Fluent
      */
     public function __construct($attributes = [])
     {
-        $attributes['type'] = $attributes['type'] ?? $this->type;
+        $attributes['type'] ??= $this->type;
 
         parent::__construct($attributes);
     }
 
     /**
      * Make a new instance of a field.
-     *
-     * @param  array|string  $name
-     * @param  string  $label
-     * @return static
      */
     public static function make(array|string $name, string $label = ''): static
     {
@@ -60,8 +55,8 @@ class Field extends Fluent
     }
 
     /**
-     * @param  string  $label
      * @return $this
+     *
      * @see https://editor.datatables.net/reference/option/fields.label
      */
     public function label(string $label): static
@@ -72,8 +67,8 @@ class Field extends Fluent
     }
 
     /**
-     * @param  string  $name
      * @return $this
+     *
      * @see https://editor.datatables.net/reference/option/fields.name
      */
     public function name(string $name): static
@@ -84,8 +79,8 @@ class Field extends Fluent
     }
 
     /**
-     * @param  string  $data
      * @return $this
+     *
      * @see https://editor.datatables.net/reference/option/fields.data
      */
     public function data(string $data): static
@@ -96,8 +91,8 @@ class Field extends Fluent
     }
 
     /**
-     * @param  string  $type
      * @return $this
+     *
      * @see https://editor.datatables.net/reference/option/fields.type
      */
     public function type(string $type): static
@@ -111,9 +106,7 @@ class Field extends Fluent
     /**
      * Get options from a model.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder|class-string<\Illuminate\Database\Eloquent\Model>  $model
-     * @param  string  $value
-     * @param  string  $key
+     * @param  Builder|class-string<Model>  $model
      * @return $this
      */
     public function modelOptions(Builder|string $model, string $value, string $key = 'id'): static
@@ -126,7 +119,6 @@ class Field extends Fluent
     /**
      * Get options from a Enum::cases().
      *
-     * @param array $cases
      * @return $this
      */
     public function enumOptions(array $cases): static
@@ -145,7 +137,6 @@ class Field extends Fluent
     /**
      * Set select options.
      *
-     * @param  array|Arrayable  $options
      * @return $this
      */
     public function options(array|Arrayable $options): static
@@ -162,19 +153,14 @@ class Field extends Fluent
     /**
      * Get options from a table.
      *
-     * @param  QueryBuilder|\Closure|string  $table
-     * @param  string  $value
-     * @param  string  $key
-     * @param  \Closure|null  $whereCallback
-     * @param  string|null  $connection
      * @return $this
      */
     public function tableOptions(
         QueryBuilder|Closure|string $table,
         string $value,
         string $key = 'id',
-        Closure $whereCallback = null,
-        string $connection = null
+        ?Closure $whereCallback = null,
+        ?string $connection = null
     ): static {
         return $this->options(
             Options::table($table, $value, $key, $whereCallback, $connection)
@@ -184,7 +170,6 @@ class Field extends Fluent
     /**
      * Set checkbox separator.
      *
-     * @param  string  $separator
      * @return $this
      */
     public function separator(string $separator = ','): static
@@ -197,8 +182,8 @@ class Field extends Fluent
     /**
      * Set dateTime format.
      *
-     * @param  string  $format
      * @return $this
+     *
      * @see https://editor.datatables.net/reference/field/datetime
      */
     public function format(string $format): static
@@ -211,8 +196,8 @@ class Field extends Fluent
     /**
      * Set field default value.
      *
-     * @param  float|bool|int|string|array  $value
      * @return $this
+     *
      * @see https://editor.datatables.net/reference/option/fields.def
      */
     public function default(float|bool|int|string|array $value): static
@@ -225,8 +210,8 @@ class Field extends Fluent
     /**
      * Set field message value.
      *
-     * @param  string  $value
      * @return $this
+     *
      * @see https://editor.datatables.net/reference/option/fields.message
      */
     public function message(string $value): static
@@ -239,8 +224,8 @@ class Field extends Fluent
     /**
      * Set field fieldInfo value.
      *
-     * @param  string  $value
      * @return $this
+     *
      * @see https://editor.datatables.net/reference/option/fields.fieldInfo
      */
     public function fieldInfo(string $value): static
@@ -253,8 +238,8 @@ class Field extends Fluent
     /**
      * Set field labelInfo value.
      *
-     * @param  string  $value
      * @return $this
+     *
      * @see https://editor.datatables.net/reference/option/fields.labelInfo
      */
     public function labelInfo(string $value): static
@@ -267,8 +252,8 @@ class Field extends Fluent
     /**
      * Set field entityDecode value.
      *
-     * @param  bool  $value
      * @return $this
+     *
      * @see https://editor.datatables.net/reference/option/fields.entityDecode
      */
     public function entityDecode(bool $value): static
@@ -281,8 +266,8 @@ class Field extends Fluent
     /**
      * Set field multiEditable value.
      *
-     * @param  bool  $value
      * @return $this
+     *
      * @see https://editor.datatables.net/reference/option/fields.multiEditable
      */
     public function multiEditable(bool $value): static
@@ -295,8 +280,8 @@ class Field extends Fluent
     /**
      * Set field id value.
      *
-     * @param  string  $value
      * @return $this
+     *
      * @see https://editor.datatables.net/reference/option/fields.id
      */
     public function id(string $value): static
@@ -309,8 +294,8 @@ class Field extends Fluent
     /**
      * Set field submit value.
      *
-     * @param  bool  $value
      * @return $this
+     *
      * @see https://editor.datatables.net/reference/option/fields.submit
      */
     public function submit(bool $value): static
@@ -323,8 +308,8 @@ class Field extends Fluent
     /**
      * Set field compare value.
      *
-     * @param  bool  $value
      * @return $this
+     *
      * @see https://editor.datatables.net/reference/option/fields.compare
      */
     public function compare(bool $value): static
@@ -337,8 +322,8 @@ class Field extends Fluent
     /**
      * Set field opts value.
      *
-     * @param  array  $value
      * @return $this
+     *
      * @see https://datatables.net/forums/discussion/comment/156581/#Comment_156581
      */
     public function opts(array $value): static
@@ -355,9 +340,8 @@ class Field extends Fluent
     /**
      * Set field element html attributes.
      *
-     * @param  string  $attribute
-     * @param  int|bool|string  $value
      * @return $this
+     *
      * @see https://datatables.net/forums/discussion/comment/156581/#Comment_156581
      */
     public function attr(string $attribute, int|bool|string $value): static
@@ -374,9 +358,6 @@ class Field extends Fluent
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getType(): string
     {
         return $this->type;
@@ -385,8 +366,8 @@ class Field extends Fluent
     /**
      * Replace null values with the field's default on edit.
      *
-     * @param  bool  $value
      * @return $this
+     *
      * @see https://editor.datatables.net/reference/option/fields.nullDefault
      */
     public function nullDefault(bool $value = true): static
@@ -394,5 +375,30 @@ class Field extends Fluent
         $this->attributes['nullDefault'] = $value;
 
         return $this;
+    }
+
+    /**
+     * @return $this
+     *
+     * @see https://editor.datatables.net/reference/option/fields.className
+     */
+    public function className(string $className): static
+    {
+        $this->attributes['className'] = $className;
+
+        return $this;
+    }
+
+    /**
+     * Add a format to indicate if a field is required.
+     *
+     * @return $this
+     */
+    public function required(bool $required = true): static
+    {
+        $requiredFieldHtml = $required ? '<span class="text-red-500">*</span>' : '';
+        $label = $this->get('label');
+
+        return $this->label(($label ?? '').' '.$requiredFieldHtml);
     }
 }

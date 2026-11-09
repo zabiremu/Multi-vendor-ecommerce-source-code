@@ -1,45 +1,73 @@
 <?php
 
-/*
- * This file is part of the PHPFlasher package.
- * (c) Younes KHOUBZA <younes.khoubza@gmail.com>
- */
+declare(strict_types=1);
 
 namespace Flasher\Laravel\Storage;
 
+use Flasher\Prime\Notification\Envelope;
 use Flasher\Prime\Storage\Bag\BagInterface;
+use Illuminate\Contracts\Session\Session;
+use Illuminate\Session\SessionManager;
 use Illuminate\Session\Store;
 
-final class SessionBag implements BagInterface
+final readonly class SessionBag implements BagInterface
 {
-    const ENVELOPES_NAMESPACE = 'flasher::envelopes';
+    public const ENVELOPES_NAMESPACE = 'flasher::envelopes';
 
-    /**
-     * @var Store
-     */
-    private $session;
+    private FallbackSessionInterface $fallbackSession;
 
-    /**
-     * @param Store $session
-     */
-    public function __construct($session)
+    public function __construct(private SessionManager $sessionManager, ?FallbackSessionInterface $fallbackSession = null)
     {
-        $this->session = $session;
+        $this->fallbackSession = $fallbackSession ?? new FallbackSession();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function get()
+    public function get(): array
     {
-        return $this->session->get(self::ENVELOPES_NAMESPACE, array()); // @phpstan-ignore-line
+        $session = $this->getSession();
+
+        $envelopes = $session->get(self::ENVELOPES_NAMESPACE, []);
+
+        if (!\is_array($envelopes)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($envelopes as $envelope) {
+            if ($envelope instanceof Envelope) {
+                $result[] = $envelope;
+            } elseif (\is_string($envelope)) {
+                $unserialized = @unserialize($envelope);
+                if ($unserialized instanceof Envelope) {
+                    $result[] = $unserialized;
+                }
+            }
+            // Arrays and invalid data silently skipped (graceful degradation)
+        }
+
+        return $result;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function set(array $envelopes)
+    public function set(array $envelopes): void
     {
-        $this->session->put(self::ENVELOPES_NAMESPACE, $envelopes);
+        $session = $this->getSession();
+
+        if ($session instanceof FallbackSessionInterface) {
+            $session->set(self::ENVELOPES_NAMESPACE, $envelopes);
+
+            return;
+        }
+
+        $session->put(self::ENVELOPES_NAMESPACE, array_map(serialize(...), $envelopes));
+    }
+
+    private function getSession(): Session|FallbackSessionInterface
+    {
+        $session = $this->sessionManager->driver();
+
+        if ($session instanceof Store && $session->isStarted()) {
+            return $session;
+        }
+
+        return $this->fallbackSession;
     }
 }

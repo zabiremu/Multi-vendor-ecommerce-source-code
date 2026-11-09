@@ -1,0 +1,196 @@
+.fl-facebook {
+    --fb-bg-light: #ffffff;
+    --fb-bg-dark: #242526;
+    --fb-text-light: #050505;
+    --fb-text-secondary-light: #65676b;
+    --fb-text-dark: #e4e6eb;
+    --fb-text-secondary-dark: #b0b3b8;
+    --fb-hover-light: #f0f2f5;
+    --fb-hover-dark: #3a3b3c;
+    --fb-border-light: #e4e6eb;
+    --fb-border-dark: #3e4042;
+    --fb-blue: #1876f2;
+    --fb-name-color: #050505;
+    --fb-name-color-dark: #e4e6eb;
+    --fb-success: #31a24c;
+    --fb-info: #1876f2;
+    --fb-warning: #f7b928;
+    --fb-error: #e41e3f;
+    --fb-success-bg: #e7f3ff;
+    --fb-info-bg: #e7f3ff;
+    --fb-warning-bg: #fff5cc;
+    --fb-error-bg: #ffebe9;
+    --fb-success-bg-dark: #263c4b;
+    --fb-info-bg-dark: #263c4b;
+    --fb-warning-bg-dark: #3e3c26;
+    --fb-error-bg-dark: #472835;
+    --fb-animation-duration: 0.2s;
+}
+@keyframes fbFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.fl-facebook {
+    position: relative;
+    margin: 8px 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    animation: fbFadeIn var(--fb-animation-duration) ease-out;
+    .fl-fb-notification {
+        background-color: var(--fb-bg-light);
+        color: var(--fb-text-light);
+        border-radius: 8px;
+        padding: 12px;
+        display: flex;
+        align-items: flex-start;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.1s ease;
+        &:hover {
+            background-color: var(--fb-hover-light);
+        }
+    }
+    .fl-icon-container {
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+    .fl-fb-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        svg {
+            color: white;
+        }
+    }
+    .fl-fb-icon-success {
+        background-color: var(--fb-success);
+    }
+    .fl-fb-icon-info {
+        background-color: var(--fb-info);
+    }
+    .fl-fb-icon-warning {
+        background-color: var(--fb-warning);
+    }
+    .fl-fb-icon-error {
+        background-color: var(--fb-error);
+    }
+    .fl-content {
+        flex: 1;
+        min-width: 0;
+    }
+    .fl-message {
+        font-size: 15px;
+        line-height: 1.33;
+        margin-bottom: 4px;
+    }
+    .fl-user-name {
+        font-weight: 600;
+        color: var(--fb-name-color);
+        margin-right: 4px;
+    }
+    .fl-meta {
+        display: flex;
+        align-items: center;
+    }
+    .fl-time {
+        font-size: 13px;
+        color: var(--fb-text-secondary-light);
+    }
+    .fl-actions {
+        display: flex;
+        margin-left: 12px;
+        align-items: center;
+    }
+    .fl-button {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--fb-hover-light);
+        border: none;
+        cursor: pointer;
+        color: var(--fb-text-secondary-light);
+        margin-left: 8px;
+        transition: background-color 0.1s;
+        &:hover {
+            background-color: var(--fb-border-light);
+        }
+    }
+    .fl-button-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    &.fl-rtl {
+        direction: rtl;
+        .fl-icon-container {
+            margin-right: 0;
+            margin-left: 12px;
+        }
+        .fl-user-name {
+            margin-right: 0;
+            margin-left: 4px;
+        }
+        .fl-actions {
+            margin-left: 0;
+            margin-right: 12px;
+        }
+        .fl-button {
+            margin-left: 0;
+            margin-right: 8px;
+        }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+}
+body.fl-dark .fl-facebook,
+html.fl-dark .fl-facebook,
+.fl-facebook.fl-auto-dark {
+    .fl-fb-notification {
+        background-color: var(--fb-bg-dark);
+        color: var(--fb-text-dark);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        &:hover {
+            background-color: var(--fb-hover-dark);
+        }
+    }
+    .fl-user-name {
+        color: var(--fb-name-color-dark);
+    }
+    .fl-time {
+        color: var(--fb-text-secondary-dark);
+    }
+    .fl-button {
+        background: var(--fb-hover-dark);
+        color: var(--fb-text-secondary-dark);
+        &:hover {
+            background-color: var(--fb-border-dark);
+        }
+    }
+    .fl-fb-icon-success {
+        background-color: var(--fb-success-bg-dark);
+        svg { color: var(--fb-success); }
+    }
+    .fl-fb-icon-info {
+        background-color: var(--fb-info-bg-dark);
+        svg { color: var(--fb-info); }
+    }
+    .fl-fb-icon-warning {
+        background-color: var(--fb-warning-bg-dark);
+        svg { color: var(--fb-warning); }
+    }
+    .fl-fb-icon-error {
+        background-color: var(--fb-error-bg-dark);
+        svg { color: var(--fb-error); }
+    }
+}

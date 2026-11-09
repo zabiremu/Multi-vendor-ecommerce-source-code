@@ -45,5 +45,5 @@ return array(
     '13906c19e3d8fcd1341b24ed4d51cf72' => $vendorDir . '/razorpay/razorpay/Deprecated.php',
     '320163ac6b93aebe3dc25b60a0533d56' => $vendorDir . '/spatie/laravel-ignition/src/helpers.php',
     '101b35f72e0ccb1b5ef72aa86bba3ef9' => $vendorDir . '/yoeunes/toastr/src/helpers.php',
-    '4636dc85518df5919ed9898effec2b96' => $baseDir . '/App/Helper/helpers.php',
+    '4636dc85518df5919ed9898effec2b96' => $baseDir . '/app/Helper/helpers.php',
 );

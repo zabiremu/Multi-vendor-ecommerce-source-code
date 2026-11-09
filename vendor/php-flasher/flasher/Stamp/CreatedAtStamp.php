@@ -1,47 +1,27 @@
 <?php
 
-/*
- * This file is part of the PHPFlasher package.
- * (c) Younes KHOUBZA <younes.khoubza@gmail.com>
- */
+declare(strict_types=1);
 
 namespace Flasher\Prime\Stamp;
 
-final class CreatedAtStamp implements StampInterface, OrderableStampInterface, PresentableStampInterface
+final readonly class CreatedAtStamp implements OrderableStampInterface, PresentableStampInterface, StampInterface
 {
-    /**
-     * @var \DateTime
-     */
-    private $createdAt;
+    private \DateTimeImmutable $createdAt;
 
-    /**
-     * @var string
-     */
-    private $format;
+    private string $format;
 
-    /**
-     * @param string|null $format
-     *
-     * @throws \Exception
-     */
-    public function __construct(\DateTime $createdAt = null, $format = null)
+    public function __construct(?\DateTimeImmutable $createdAt = null, ?string $format = null)
     {
-        $this->createdAt = $createdAt ?: new \DateTime('now', new \DateTimeZone('Africa/Casablanca'));
+        $this->createdAt = $createdAt ?: new \DateTimeImmutable();
         $this->format = $format ?: 'Y-m-d H:i:s';
     }
 
-    /**
-     * @return \DateTime
-     */
-    public function getCreatedAt()
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function compare($orderable)
+    public function compare(StampInterface $orderable): int
     {
         if (!$orderable instanceof self) {
             return 1;
@@ -51,12 +31,10 @@ final class CreatedAtStamp implements StampInterface, OrderableStampInterface, P
     }
 
     /**
-     * {@inheritdoc}
+     * @return array{created_at: string}
      */
-    public function toArray()
+    public function toArray(): array
     {
-        $createdAt = $this->getCreatedAt();
-
-        return array('created_at' => $createdAt->format($this->format));
+        return ['created_at' => $this->createdAt->format($this->format)];
     }
 }

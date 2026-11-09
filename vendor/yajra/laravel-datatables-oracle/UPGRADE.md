@@ -1,5 +1,13 @@
 # UPGRADE GUIDE
 
+## Upgrading from v12.x to v13.x
+
+- See PR https://github.com/yajra/laravel-datatables/pull/3274
+
+## Upgrading from v11.x to v12.x
+
+- See PR https://github.com/yajra/laravel-datatables/pull/3216
+
 ## Upgrading from v9.x to v10.x
 
 - `ApiResourceDataTable` support dropped, use `CollectionDataTable` instead.

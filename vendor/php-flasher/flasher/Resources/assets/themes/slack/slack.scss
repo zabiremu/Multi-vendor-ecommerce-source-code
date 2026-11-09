@@ -1,0 +1,161 @@
+.fl-slack {
+    --slack-bg-light: #ffffff;
+    --slack-bg-dark: #1a1d21;
+    --slack-hover-light: #f8f8f8;
+    --slack-hover-dark: #222529;
+    --slack-text-light: #1d1c1d;
+    --slack-text-secondary-light: #616061;
+    --slack-text-dark: #e0e0e0;
+    --slack-text-secondary-dark: #ababad;
+    --slack-border-light: #e0e0e0;
+    --slack-border-dark: #393a3e;
+    --slack-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+    --slack-shadow-dark: 0 1px 0 rgba(0, 0, 0, 0.2);
+    --slack-avatar-size: 36px;
+    --slack-success: #2bac76;
+    --slack-info: #1264a3;
+    --slack-warning: #e8912d;
+    --slack-error: #e01e5a;
+    --slack-animation-duration: 150ms;
+}
+@keyframes slackFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+.fl-slack {
+    position: relative;
+    margin: 4px 0;
+    font-family: "Lato", "Slack-Lato", "Helvetica Neue", "Helvetica", sans-serif;
+    animation: slackFadeIn var(--slack-animation-duration) ease-out;
+    .fl-slack-message {
+        background-color: var(--slack-bg-light);
+        color: var(--slack-text-light);
+        padding: 8px 20px 8px 8px;
+        border-radius: 4px;
+        display: flex;
+        align-items: flex-start;
+        transition: background-color 0.1s ease;
+        border: 1px solid var(--slack-border-light);
+        box-shadow: var(--slack-shadow);
+        &:hover {
+            background-color: var(--slack-hover-light);
+        }
+    }
+    .fl-avatar {
+        width: var(--slack-avatar-size);
+        height: var(--slack-avatar-size);
+        border-radius: 4px;
+        margin-right: 8px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: currentColor;
+    }
+    .fl-type-icon {
+        color: white;
+        font-weight: bold;
+        font-size: 16px;
+    }
+    .fl-message-content {
+        flex: 1;
+        min-width: 0;
+    }
+    .fl-message-text {
+        font-size: 15px;
+        line-height: 1.46668;
+        word-break: break-word;
+    }
+    .fl-actions {
+        visibility: hidden;
+        position: absolute;
+        right: 6px;
+        top: 8px;
+        opacity: 0;
+        transition: opacity 0.1s ease;
+    }
+    .fl-slack-message:hover .fl-actions {
+        visibility: visible;
+        opacity: 1;
+    }
+    .fl-close {
+        background: none;
+        border: none;
+        color: var(--slack-text-secondary-light);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        &:hover {
+            color: var(--slack-text-light);
+            background-color: var(--slack-hover-light);
+        }
+    }
+    &.fl-success {
+        .fl-avatar {
+            color: var(--slack-success);
+        }
+    }
+    &.fl-info {
+        .fl-avatar {
+            color: var(--slack-info);
+        }
+    }
+    &.fl-warning {
+        .fl-avatar {
+            color: var(--slack-warning);
+        }
+    }
+    &.fl-error {
+        .fl-avatar {
+            color: var(--slack-error);
+        }
+    }
+    &.fl-rtl {
+        direction: rtl;
+        .fl-avatar {
+            margin-right: 0;
+            margin-left: 8px;
+        }
+        .fl-username {
+            margin-right: 0;
+            margin-left: 4px;
+        }
+        .fl-actions {
+            right: auto;
+            left: 6px;
+        }
+        .fl-slack-message {
+            padding: 8px 8px 8px 20px;
+        }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+}
+body.fl-dark .fl-slack,
+html.fl-dark .fl-slack,
+.fl-slack.fl-auto-dark {
+    .fl-slack-message {
+        background-color: var(--slack-bg-dark);
+        color: var(--slack-text-dark);
+        border-color: var(--slack-border-dark);
+        box-shadow: var(--slack-shadow-dark);
+        &:hover {
+            background-color: var(--slack-hover-dark);
+        }
+    }
+    .fl-close {
+        color: var(--slack-text-secondary-dark);
+        &:hover {
+            color: var(--slack-text-dark);
+            background-color: var(--slack-hover-dark);
+        }
+    }
+}

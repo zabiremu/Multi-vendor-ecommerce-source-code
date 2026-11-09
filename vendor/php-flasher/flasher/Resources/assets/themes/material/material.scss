@@ -1,0 +1,198 @@
+.fl-material {
+    --md-bg-light: #ffffff;
+    --md-bg-dark: #2d2d2d;
+    --md-text-light: rgba(0, 0, 0, 0.87);
+    --md-text-secondary-light: rgba(0, 0, 0, 0.6);
+    --md-text-dark: rgba(255, 255, 255, 0.87);
+    --md-text-secondary-dark: rgba(255, 255, 255, 0.6);
+    --md-elevation: 0 3px 5px -1px rgba(0,0,0,0.2),
+                    0 6px 10px 0 rgba(0,0,0,0.14),
+                    0 1px 18px 0 rgba(0,0,0,0.12);
+    --md-elevation-dark: 0 3px 5px -1px rgba(0,0,0,0.4),
+                         0 6px 10px 0 rgba(0,0,0,0.28),
+                         0 1px 18px 0 rgba(0,0,0,0.24);
+    --md-border-radius: 4px;
+    --md-success: #43a047;
+    --md-info: #1e88e5;
+    --md-warning: #fb8c00;
+    --md-error: #e53935;
+    --md-animation-duration: 0.3s;
+    --md-ripple-duration: 0.6s;
+}
+@keyframes mdSlideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes mdRipple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+.fl-material {
+    position: relative;
+    margin: 8px 0;
+    font-family: Roboto, "Segoe UI", Helvetica, Arial, sans-serif;
+    animation: mdSlideUp var(--md-animation-duration) cubic-bezier(0.4, 0, 0.2, 1);
+    .fl-md-card {
+        background-color: var(--md-bg-light);
+        color: var(--md-text-light);
+        border-radius: var(--md-border-radius);
+        box-shadow: var(--md-elevation);
+        overflow: hidden;
+    }
+    .fl-content {
+        padding: 16px;
+        display: flex;
+        align-items: flex-start;
+    }
+    .fl-text-content {
+        flex: 1;
+    }
+    .fl-message {
+        font-size: 0.875rem;
+        line-height: 1.43;
+        color: var(--md-text-secondary-light);
+    }
+    .fl-actions {
+        display: flex;
+        justify-content: flex-end;
+        padding: 8px;
+    }
+    .fl-action-button {
+        background: transparent;
+        border: none;
+        color: currentColor;
+        font-family: inherit;
+        font-weight: 500;
+        font-size: 0.8125rem;
+        text-transform: uppercase;
+        letter-spacing: 0.0892857143em;
+        padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        position: relative;
+        overflow: hidden;
+        &:hover, &:focus {
+            background-color: rgba(0, 0, 0, 0.04);
+        }
+        &::after {
+            content: "";
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: currentColor;
+            opacity: 0;
+            border-radius: 50%;
+            transform: scale(1);
+            pointer-events: none;
+        }
+        &:active::after {
+            opacity: 0.3;
+            animation: mdRipple var(--md-ripple-duration) linear;
+        }
+    }
+    &.fl-success {
+        .fl-icon-wrapper {
+            color: var(--md-success);
+        }
+        .fl-action-button {
+            color: var(--md-success);
+        }
+    }
+    &.fl-info {
+        .fl-icon-wrapper {
+            color: var(--md-info);
+        }
+        .fl-action-button {
+            color: var(--md-info);
+        }
+    }
+    &.fl-warning {
+        .fl-icon-wrapper {
+            color: var(--md-warning);
+        }
+        .fl-action-button {
+            color: var(--md-warning);
+        }
+    }
+    &.fl-error {
+        .fl-icon-wrapper {
+            color: var(--md-error);
+        }
+        .fl-action-button {
+            color: var(--md-error);
+        }
+    }
+    .fl-progress-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        overflow: hidden;
+        .fl-progress {
+            height: 100%;
+            width: 100%;
+            transform-origin: left center;
+        }
+    }
+    &.fl-success .fl-progress {
+        background-color: var(--md-success);
+    }
+    &.fl-info .fl-progress {
+        background-color: var(--md-info);
+    }
+    &.fl-warning .fl-progress {
+        background-color: var(--md-warning);
+    }
+    &.fl-error .fl-progress {
+        background-color: var(--md-error);
+    }
+    &.fl-rtl {
+        direction: rtl;
+        .fl-content {
+            flex-direction: row-reverse;
+        }
+        .fl-icon-wrapper {
+            margin-right: 0;
+            margin-left: 16px;
+        }
+        .fl-actions {
+            justify-content: flex-start;
+        }
+        .fl-progress {
+            transform-origin: right center;
+        }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+        .fl-action-button:active::after {
+            animation: none;
+        }
+    }
+}
+body.fl-dark .fl-material,
+html.fl-dark .fl-material,
+.fl-material.fl-auto-dark {
+    .fl-md-card {
+        background-color: var(--md-bg-dark);
+        color: var(--md-text-dark);
+        box-shadow: var(--md-elevation-dark);
+    }
+    .fl-message {
+        color: var(--md-text-secondary-dark);
+    }
+    .fl-action-button {
+        &:hover, &:focus {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+    }
+}

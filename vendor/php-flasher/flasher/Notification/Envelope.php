@@ -1,259 +1,189 @@
 <?php
 
-/*
- * This file is part of the PHPFlasher package.
- * (c) Younes KHOUBZA <younes.khoubza@gmail.com>
- */
+declare(strict_types=1);
 
 namespace Flasher\Prime\Notification;
 
 use Flasher\Prime\Stamp\PresentableStampInterface;
 use Flasher\Prime\Stamp\StampInterface;
+use Flasher\Prime\Support\Traits\ForwardsCalls;
 
 final class Envelope implements NotificationInterface
 {
-    /**
-     * @var NotificationInterface
-     */
-    private $notification;
+    use ForwardsCalls;
 
     /**
      * @var array<class-string<StampInterface>, StampInterface>
      */
-    private $stamps = array();
+    private array $stamps = [];
 
     /**
-     * @param StampInterface|StampInterface[] $stamps
+     * @param StampInterface[]|StampInterface $stamps
      */
-    public function __construct(NotificationInterface $notification, $stamps = array())
+    public function __construct(private readonly NotificationInterface $notification, array|StampInterface $stamps = [])
     {
-        $this->notification = $notification;
-        $this->with(\is_array($stamps) ? $stamps : \array_slice(\func_get_args(), 1));
+        $stamps = $stamps instanceof StampInterface ? [$stamps] : $stamps;
+
+        $this->with(...$stamps);
     }
 
     /**
-     * Dynamically call methods on the notification.
-     *
-     * @param string  $method
-     * @param mixed[] $parameters
-     *
-     * @return mixed
+     * @param StampInterface[]|StampInterface $stamps
      */
-    public function __call($method, array $parameters)
-    {
-        /** @var callable $callback */
-        $callback = array($this->getNotification(), $method);
-
-        return \call_user_func_array($callback, $parameters);
-    }
-
-    /**
-     * Makes sure the notification is in an Envelope and adds the given stamps.
-     *
-     * @param StampInterface|StampInterface[] $stamps
-     *
-     * @return static
-     */
-    public static function wrap(NotificationInterface $notification, $stamps = array())
+    public static function wrap(NotificationInterface $notification, array|StampInterface $stamps = []): self
     {
         $envelope = $notification instanceof self ? $notification : new self($notification);
+        $stamps = $stamps instanceof StampInterface ? [$stamps] : $stamps;
 
-        return $envelope->with(\is_array($stamps) ? $stamps : \array_slice(\func_get_args(), 1));
+        $envelope->with(...$stamps);
+
+        return $envelope;
     }
 
-    /**
-     * @param StampInterface|StampInterface[] $stamps
-     *
-     * @return static
-     */
-    public function with($stamps)
+    public function with(StampInterface ...$stamps): void
     {
-        $stamps = \is_array($stamps) ? $stamps : \func_get_args();
-
         foreach ($stamps as $stamp) {
             $this->withStamp($stamp);
         }
-
-        return $this;
     }
 
-    /**
-     * @return static
-     */
-    public function withStamp(StampInterface $stamp)
+    public function withStamp(StampInterface $stamp, bool $replace = true): void
     {
-        $this->stamps[\get_class($stamp)] = $stamp;
-
-        return $this;
+        if (!isset($this->stamps[$stamp::class]) || $replace) {
+            $this->stamps[$stamp::class] = $stamp;
+        }
     }
 
-    /**
-     * @param StampInterface|StampInterface[] $stamps
-     *
-     * @return static
-     */
-    public function without($stamps)
+    public function without(StampInterface ...$stamps): void
     {
-        $stamps = \is_array($stamps) ? $stamps : \func_get_args();
-
         foreach ($stamps as $stamp) {
             $this->withoutStamp($stamp);
         }
-
-        return $this;
     }
 
     /**
      * @param class-string<StampInterface>|StampInterface $type
-     *
-     * @return static
      */
-    public function withoutStamp($type)
+    public function withoutStamp(string|StampInterface $type): void
     {
-        $type = $type instanceof StampInterface ? \get_class($type) : $type;
+        $type = $type instanceof StampInterface ? $type::class : $type;
 
         unset($this->stamps[$type]);
-
-        return $this;
     }
 
     /**
-     * @param class-string<StampInterface> $stampFqcn
+     * @template T of StampInterface
      *
-     * @return StampInterface|null
+     * @phpstan-param class-string<T> $type
+     *
+     * @phpstan-return T|null
      */
-    public function get($stampFqcn)
+    public function get(string $type): ?StampInterface
     {
-        if (!isset($this->stamps[$stampFqcn])) {
-            return null;
-        }
+        /** @var T|null $stamp */
+        $stamp = $this->stamps[$type] ?? null;
 
-        return $this->stamps[$stampFqcn];
+        return $stamp;
     }
 
     /**
-     * All stamps by their class name.
-     *
      * @return array<class-string<StampInterface>, StampInterface>
      */
-    public function all()
+    public function all(): array
     {
         return $this->stamps;
     }
 
-    /**
-     * The original notification contained in the envelope.
-     *
-     * @return NotificationInterface
-     */
-    public function getNotification()
+    public function getNotification(): NotificationInterface
     {
         return $this->notification;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getType()
-    {
-        return $this->notification->getType();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setType($type)
-    {
-        return $this->notification->setType($type); // @phpstan-ignore-line
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getMessage()
-    {
-        return $this->notification->getMessage();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setMessage($message)
-    {
-        return $this->notification->setMessage($message); // @phpstan-ignore-line
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getTitle()
+    public function getTitle(): string
     {
         return $this->notification->getTitle();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function setTitle($title)
+    public function setTitle(string $title): void
     {
-        return $this->notification->setTitle($title); // @phpstan-ignore-line
+        $this->notification->setTitle($title);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getOptions()
+    public function getMessage(): string
+    {
+        return $this->notification->getMessage();
+    }
+
+    public function setMessage(string $message): void
+    {
+        $this->notification->setMessage($message);
+    }
+
+    public function getType(): string
+    {
+        return $this->notification->getType();
+    }
+
+    public function setType(string $type): void
+    {
+        $this->notification->setType($type);
+    }
+
+    public function getOptions(): array
     {
         return $this->notification->getOptions();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function setOptions(array $options)
+    public function setOptions(array $options): void
     {
-        return $this->notification->setOptions($options); // @phpstan-ignore-line
+        $this->notification->setOptions($options);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getOption($name, $default = null)
+    public function getOption(string $name, mixed $default = null): mixed
     {
         return $this->notification->getOption($name, $default);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function setOption($name, $value)
+    public function setOption(string $name, mixed $value): void
     {
-        return $this->notification->setOption($name, $value); // @phpstan-ignore-line
+        $this->notification->setOption($name, $value);
+    }
+
+    public function unsetOption(string $name): void
+    {
+        $this->notification->unsetOption($name);
     }
 
     /**
-     * {@inheritdoc}
+     * @return array{
+     *     title: string,
+     *     message: string,
+     *     type: string,
+     *     options: array<string, mixed>,
+     *     metadata: array<string, mixed>,
+     * }
      */
-    public function unsetOption($name)
+    public function toArray(): array
     {
-        return $this->notification->unsetOption($name); // @phpstan-ignore-line
-    }
+        $stamps = [];
 
-    /**
-     * {@inheritdoc}
-     */
-    public function toArray()
-    {
-        $array = array(
-            'notification' => $this->notification->toArray(),
-        );
-
-        foreach ($this->all() as $stamp) {
+        foreach ($this->stamps as $stamp) {
             if ($stamp instanceof PresentableStampInterface) {
-                $array = array_merge($array, $stamp->toArray());
+                $stamps[] = $stamp->toArray();
             }
         }
 
-        return $array;
+        return [
+            ...$this->notification->toArray(),
+            'metadata' => $stamps ? array_merge(...$stamps) : [],
+        ];
+    }
+
+    /**
+     * @param mixed[] $parameters
+     */
+    public function __call(string $method, array $parameters): mixed
+    {
+        return $this->forwardCallTo($this->notification, $method, $parameters);
     }
 }

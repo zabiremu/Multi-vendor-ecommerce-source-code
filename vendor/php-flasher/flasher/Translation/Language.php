@@ -1,62 +1,50 @@
 <?php
 
-/*
- * This file is part of the PHPFlasher package.
- * (c) Younes KHOUBZA <younes.khoubza@gmail.com>
- */
+declare(strict_types=1);
 
 namespace Flasher\Prime\Translation;
 
-final class Language
+final readonly class Language
 {
-    const LTR = 'ltr';
-    const RTL = 'rtl';
+    public const LTR = 'ltr';
+    public const RTL = 'rtl';
 
-    /**
-     * @param string $locale
-     *
-     * @return string
-     */
-    public static function direction($locale)
+    public static function direction(string $locale): string
     {
         if (!\extension_loaded('intl')) {
             return self::LTR;
         }
 
-        $resource = \ResourceBundle::create($locale, 'ICUDATA', true);
-        if (null === $resource) {
-            return self::LTR;
-        }
+        $resource = \ResourceBundle::create($locale, 'ICUDATA', false);
+        $layout = $resource?->get('layout');
 
-        $layout = $resource->get('layout');
         if (!$layout instanceof \ResourceBundle) {
             return self::LTR;
         }
 
-        $characters = $layout->get('characters');
-        if (!\is_string($characters)) {
-            return self::LTR;
-        }
-
-        return 'right-to-left' === $characters ? self::RTL : self::LTR;
+        return 'right-to-left' === $layout->get('characters') ? self::RTL : self::LTR;
     }
 
     /**
-     * @param string $locale
+     * Checks if the given locale uses right-to-left text direction.
      *
-     * @return bool
+     * @param string $locale The locale code to check
+     *
+     * @return bool True if the locale uses RTL, false otherwise
      */
-    public static function isRTL($locale)
+    public static function isRTL(string $locale): bool
     {
         return self::RTL === self::direction($locale);
     }
 
     /**
-     * @param string $locale
+     * Checks if the given locale uses left-to-right text direction.
      *
-     * @return bool
+     * @param string $locale The locale code to check
+     *
+     * @return bool True if the locale uses LTR, false otherwise
      */
-    public static function isLTR($locale)
+    public static function isLTR(string $locale): bool
     {
         return self::LTR === self::direction($locale);
     }

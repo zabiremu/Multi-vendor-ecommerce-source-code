@@ -183,7 +183,7 @@ final class RowIterator implements RowIteratorInterface
      */
     private function readDataForNextRow(): void
     {
-        $this->currentlyProcessedRow = new Row([], null);
+        $this->currentlyProcessedRow = new Row([]);
 
         $this->xmlProcessor->readUntilStopped();
 
@@ -216,15 +216,21 @@ final class RowIterator implements RowIteratorInterface
         $currentNumColumnsRepeated = $this->getNumColumnsRepeatedForCurrentNode($xmlReader);
 
         // NOTE: expand() will automatically decode all XML entities of the child nodes
-        /** @var DOMElement $node */
-        $node = $xmlReader->expand();
+        $node = @$xmlReader->expand();
+        if (!$node instanceof DOMElement) {
+            $this->lastProcessedCell = null;
+
+            return XMLProcessor::PROCESSING_CONTINUE;
+        }
         $currentCell = $this->getCell($node);
 
         // process cell N only after having read cell N+1 (see below why)
         if ($this->hasAlreadyReadOneCellInCurrentRow) {
+            $cells = $this->currentlyProcessedRow->cells;
             for ($i = 0; $i < $this->numColumnsRepeated; ++$i) {
-                $this->currentlyProcessedRow->addCell($this->lastProcessedCell);
+                $cells[] = $this->lastProcessedCell;
             }
+            $this->currentlyProcessedRow = $this->currentlyProcessedRow->withCells($cells);
         }
 
         $this->hasAlreadyReadOneCellInCurrentRow = true;
@@ -241,7 +247,7 @@ final class RowIterator implements RowIteratorInterface
     {
         $isEmptyRow = $this->isEmptyRow($this->currentlyProcessedRow, $this->lastProcessedCell);
 
-        // if the fetched row is empty and we don't want to preserve it...
+        // if the fetched row is empty, and we don't want to preserve it...
         if (!$this->options->SHOULD_PRESERVE_EMPTY_ROWS && $isEmptyRow) {
             // ... skip it
             return XMLProcessor::PROCESSING_CONTINUE;
@@ -255,12 +261,14 @@ final class RowIterator implements RowIteratorInterface
         // The current count of read columns is determined by counting the values in "$this->currentlyProcessedRowData".
         // This is to avoid creating a lot of empty cells, as Excel adds a last empty "<table:table-cell>"
         // with a number-columns-repeated value equals to the number of (supported columns - used columns).
-        // In Excel, the number of supported columns is 16384, but we don't want to returns rows with
+        // In Excel, the number of supported columns is 16384, but we don't want to return rows with
         // always 16384 cells.
         if (($numCellsInCurrentlyProcessedRow + $actualNumColumnsRepeated) !== self::MAX_COLUMNS_EXCEL) {
+            $cells = $this->currentlyProcessedRow->cells;
             for ($i = 0; $i < $actualNumColumnsRepeated; ++$i) {
-                $this->currentlyProcessedRow->addCell($this->lastProcessedCell);
+                $cells[] = $this->lastProcessedCell;
             }
+            $this->currentlyProcessedRow = $this->currentlyProcessedRow->withCells($cells);
         }
 
         // If we are processing row N and the row is repeated M times,

@@ -1,31 +1,22 @@
 <?php
 
-/*
- * This file is part of the PHPFlasher package.
- * (c) Younes KHOUBZA <younes.khoubza@gmail.com>
- */
+declare(strict_types=1);
 
 namespace Flasher\Prime\Stamp;
 
-final class DelayStamp implements StampInterface
+final readonly class DelayStamp implements StampInterface
 {
     /**
-     * @var int
+     * @throws \InvalidArgumentException
      */
-    private $delay;
-
-    /**
-     * @param int $delay
-     */
-    public function __construct($delay)
+    public function __construct(private int $delay)
     {
-        $this->delay = $delay;
+        if ($delay < 0) {
+            throw new \InvalidArgumentException('Delay must be a non-negative integer (>= 0).');
+        }
     }
 
-    /**
-     * @return int
-     */
-    public function getDelay()
+    public function getDelay(): int
     {
         return $this->delay;
     }

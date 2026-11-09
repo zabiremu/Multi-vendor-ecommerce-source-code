@@ -1,46 +1,54 @@
 <?php
 
-/*
- * This file is part of the PHPFlasher package.
- * (c) Younes KHOUBZA <younes.khoubza@gmail.com>
- */
+declare(strict_types=1);
 
 namespace Flasher\Laravel\Facade;
 
 use Flasher\Prime\Notification\Envelope;
 use Flasher\Prime\Notification\NotificationBuilder;
-use Flasher\Prime\Notification\NotificationInterface;
 use Flasher\Prime\Stamp\StampInterface;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static NotificationBuilder addSuccess(string $message, array $options = array())
- * @method static NotificationBuilder addError(string $message, array $options = array())
- * @method static NotificationBuilder addWarning(string $message, array $options = array())
- * @method static NotificationBuilder addInfo(string $message, array $options = array())
- * @method static NotificationBuilder addFlash(NotificationInterface|string $type, string $message = null, array $options = array())
- * @method static NotificationBuilder flash(StampInterface[] $stamps = array())
- * @method static NotificationBuilder type(string $type, string $message = null, array $options = array())
+ * @method static NotificationBuilder title(string $message)
  * @method static NotificationBuilder message(string $message)
- * @method static NotificationBuilder options(array $options, bool $merge = true)
+ * @method static NotificationBuilder type(string $message)
+ * @method static NotificationBuilder options(array<string, mixed> $options, bool $merge = true)
  * @method static NotificationBuilder option(string $name, $value)
- * @method static NotificationBuilder success(string $message = null, array $options = array())
- * @method static NotificationBuilder error(string $message = null, array $options = array())
- * @method static NotificationBuilder info(string $message = null, array $options = array())
- * @method static NotificationBuilder warning(string $message = null, array $options = array())
  * @method static NotificationBuilder priority(int $priority)
  * @method static NotificationBuilder hops(int $amount)
  * @method static NotificationBuilder keep()
  * @method static NotificationBuilder delay(int $delay)
- * @method static NotificationBuilder now()
+ * @method static NotificationBuilder translate(array<string, mixed> $parameters = [], ?string $locale = null)
+ * @method static NotificationBuilder handler(string $handler)
+ * @method static NotificationBuilder context(array<string, mixed> $context)
+ * @method static NotificationBuilder when(bool|\Closure $condition)
+ * @method static NotificationBuilder unless(bool|\Closure $condition)
  * @method static NotificationBuilder with(StampInterface[] $stamps = array())
  * @method static NotificationBuilder withStamp(StampInterface $stamp)
- * @method static NotificationBuilder handler(string $handler)
+ * @method static Envelope            success(string $message, array<string, mixed> $options = [], ?string $title = null)
+ * @method static Envelope            error(string $message, array<string, mixed> $options = [], ?string $title = null)
+ * @method static Envelope            info(string $message, array<string, mixed> $options = [], ?string $title = null)
+ * @method static Envelope            warning(string $message, array<string, mixed> $options = [], ?string $title = null)
+ * @method static Envelope            flash(?string $type = null, ?string $message = null, array<string, mixed> $options = [], ?string $title = null)
+ * @method static Envelope            preset(string $preset, array<string, mixed> $parameters = [])
+ * @method static Envelope            operation(string $operation, string|object|null $resource = null)
+ * @method static Envelope            created(string|object|null $resource = null)
+ * @method static Envelope            updated(string|object|null $resource = null)
+ * @method static Envelope            saved(string|object|null $resource = null)
+ * @method static Envelope            deleted(string|object|null $resource = null)
+ * @method static Envelope            push()
+ * @method static Envelope            addPreset(string $preset, array<string, mixed> $parameters = [])
+ * @method static Envelope            addCreated(string|object|null $resource = null)
+ * @method static Envelope            addUpdated(string|object|null $resource = null)
+ * @method static Envelope            addDeleted(string|object|null $resource = null)
+ * @method static Envelope            addSaved(string|object|null $resource = null)
+ * @method static Envelope            addOperation(string $operation, string|object|null $resource = null)
  * @method static Envelope            getEnvelope()
  */
-class Flasher extends Facade
+final class Flasher extends Facade
 {
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
         return 'flasher';
     }

@@ -1,47 +1,36 @@
 {
     "name": "php-flasher/flasher-laravel",
-    "description": "PHPFlasher - A powerful & easy-to-use package for adding flash messages to Laravel or Symfony projects. Provides feedback to users, improves engagement & enhances user experience. Intuitive design for beginners & experienced developers. A reliable, flexible solution.",
-    "license": "MIT",
     "type": "library",
+    "license": "MIT",
+    "homepage": "https://php-flasher.io",
+    "description": "Seamlessly integrate flash notifications into your Laravel applications with PHPFlasher. Enhance user feedback and engagement with minimal setup.",
     "keywords": [
-        "php-flasher",
-        "flash-messages",
-        "notification-system",
-        "user-feedback",
-        "toastr",
-        "sweetalert",
-        "pnotify",
-        "noty",
-        "notyf",
-        "desktop-notifications",
-        "php",
         "laravel",
-        "symfony",
-        "javascript",
-        "yoeunes",
-        "framework-agnostic",
-        "phpstorm-auto-complete",
-        "custom-adapter",
-        "user-experience",
-        "rtl",
-        "dark-mode"
+        "php",
+        "flash-notifications",
+        "phpflasher",
+        "user-feedback",
+        "open-source"
     ],
+    "support": {
+        "issues": "https://github.com/php-flasher/php-flasher/issues",
+        "source": "https://github.com/php-flasher/php-flasher"
+    },
     "authors": [
         {
-            "name": "Younes KHOUBZA",
-            "email": "younes.khoubza@gmail.com",
-            "homepage": "https://www.linkedin.com/in/younes-khoubza",
+            "name": "Younes ENNAJI",
+            "email": "younes.ennaji.pro@gmail.com",
+            "homepage": "https://www.linkedin.com/in/younes--ennaji/",
             "role": "Developer"
         }
     ],
-    "homepage": "https://php-flasher.io",
-    "require": {
-        "php": ">=5.3",
-        "illuminate/support": "^4.0 || ^5.0 || ^6.0 || ^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0",
-        "php-flasher/flasher": "^1.15.14"
-    },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true,
+    "require": {
+        "php": ">=8.2",
+        "illuminate/support": "^11.0|^12.0|^13.0",
+        "php-flasher/flasher": "^2.6.3"
+    },
     "autoload": {
         "psr-4": {
             "Flasher\\Laravel\\": ""
@@ -52,13 +41,18 @@
         "sort-packages": true
     },
     "extra": {
+        "phpstan": {
+            "includes": [
+                "extension.neon"
+            ]
+        },
         "laravel": {
-            "aliases": {
-                "Flasher": "Flasher\\Laravel\\Facade\\Flasher"
-            },
             "providers": [
                 "Flasher\\Laravel\\FlasherServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "Flasher": "Flasher\\Laravel\\Facade\\Flasher"
+            }
         }
     }
 }

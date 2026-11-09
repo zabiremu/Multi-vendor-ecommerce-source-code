@@ -8,6 +8,7 @@ use Exception;
 use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Exception\IOException;
+use OpenSpout\Common\Exception\UnsupportedTypeException;
 use OpenSpout\Common\Helper\EncodingHelper;
 use OpenSpout\Writer\AbstractWriter;
 
@@ -55,6 +56,12 @@ final class Writer extends AbstractWriter
      */
     protected function addRowToWriter(Row $row): void
     {
+        foreach ($row->cells as $cell) {
+            if ($cell instanceof Cell\ImageCell) {
+                throw new UnsupportedTypeException('ImageCell is not supported in CSV format.');
+            }
+        }
+
         $cells = array_map(static function (Cell\BooleanCell|Cell\DateIntervalCell|Cell\DateTimeCell|Cell\EmptyCell|Cell\FormulaCell|Cell\NumericCell|Cell\StringCell $value): string {
             if ($value instanceof Cell\BooleanCell) {
                 return (string) (int) $value->getValue();
@@ -67,14 +74,15 @@ final class Writer extends AbstractWriter
             }
 
             return (string) $value->getValue();
-        }, $row->getCells());
+        }, $row->cells);
 
         $wasWriteSuccessful = fputcsv(
             $this->filePointer,
             $cells,
             $this->options->FIELD_DELIMITER,
             $this->options->FIELD_ENCLOSURE,
-            ''
+            '',
+            $this->options->EOL,
         );
         if (false === $wasWriteSuccessful) {
             throw new IOException('Unable to write data'); // @codeCoverageIgnore

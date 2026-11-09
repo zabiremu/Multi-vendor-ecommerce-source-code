@@ -1,48 +1,26 @@
 <?php
 
-/*
- * This file is part of the PHPFlasher package.
- * (c) Younes KHOUBZA <younes.khoubza@gmail.com>
- */
+declare(strict_types=1);
 
 use Flasher\Prime\Container\FlasherContainer;
 use Flasher\Prime\FlasherInterface;
 use Flasher\Prime\Notification\Envelope;
-use Flasher\Prime\Stamp\StampInterface;
+use Flasher\Prime\Notification\Type;
 
 if (!function_exists('flash')) {
     /**
-     * @param string               $message
-     * @param string               $type
      * @param array<string, mixed> $options
-     * @param StampInterface[]     $stamps
      *
-     * @return Envelope|FlasherInterface
+     * @phpstan-return ($message is empty ? FlasherInterface : Envelope)
      */
-    function flash($message = null, $type = 'success', array $options = array(), array $stamps = array())
+    function flash(?string $message = null, string $type = Type::SUCCESS, array $options = [], ?string $title = null): Envelope|FlasherInterface
     {
-        /** @var FlasherInterface $factory */
         $factory = FlasherContainer::create('flasher');
 
         if (0 === func_num_args()) {
             return $factory;
         }
 
-        return $factory->with($stamps)->addFlash($type, $message, $options);
-    }
-}
-
-if (!function_exists('flasher')) {
-    /**
-     * @param string               $message
-     * @param string               $type
-     * @param array<string, mixed> $options
-     * @param StampInterface[]     $stamps
-     *
-     * @return Envelope|FlasherInterface
-     */
-    function flasher($message = null, $type = 'success', array $options = array(), array $stamps = array())
-    {
-        return flash($message, $type, $options, $stamps);
+        return $factory->flash($type, $message, $options, $title);
     }
 }

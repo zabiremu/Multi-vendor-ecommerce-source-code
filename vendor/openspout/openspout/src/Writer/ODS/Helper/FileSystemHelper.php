@@ -6,6 +6,7 @@ namespace OpenSpout\Writer\ODS\Helper;
 
 use DateTimeImmutable;
 use OpenSpout\Common\Exception\IOException;
+use OpenSpout\Common\Helper\Escaper\ODS;
 use OpenSpout\Common\Helper\FileSystemHelper as CommonFileSystemHelper;
 use OpenSpout\Writer\Common\Entity\Worksheet;
 use OpenSpout\Writer\Common\Helper\FileSystemWithRootFolderHelperInterface;
@@ -18,15 +19,16 @@ use OpenSpout\Writer\ODS\Manager\WorksheetManager;
  */
 final class FileSystemHelper implements FileSystemWithRootFolderHelperInterface
 {
-    public const MIMETYPE = 'application/vnd.oasis.opendocument.spreadsheet';
+    public const string MIMETYPE = 'application/vnd.oasis.opendocument.spreadsheet';
 
-    public const META_INF_FOLDER_NAME = 'META-INF';
+    public const string META_INF_FOLDER_NAME = 'META-INF';
 
-    public const MANIFEST_XML_FILE_NAME = 'manifest.xml';
-    public const CONTENT_XML_FILE_NAME = 'content.xml';
-    public const META_XML_FILE_NAME = 'meta.xml';
-    public const MIMETYPE_FILE_NAME = 'mimetype';
-    public const STYLES_XML_FILE_NAME = 'styles.xml';
+    public const string MANIFEST_XML_FILE_NAME = 'manifest.xml';
+    public const string CONTENT_XML_FILE_NAME = 'content.xml';
+    public const string META_XML_FILE_NAME = 'meta.xml';
+    public const string MIMETYPE_FILE_NAME = 'mimetype';
+    public const string STYLES_XML_FILE_NAME = 'styles.xml';
+    public const string SETTINGS_XML_FILE_NAME = 'settings.xml';
 
     private string $baseFolderRealPath;
 
@@ -46,17 +48,22 @@ final class FileSystemHelper implements FileSystemWithRootFolderHelperInterface
     /** @var ZipHelper Helper to perform tasks with Zip archive */
     private readonly ZipHelper $zipHelper;
 
+    /** @var ODS Used to escape XML data */
+    private readonly ODS $escaper;
+
     /**
      * @param string    $baseFolderPath The path of the base folder where all the I/O can occur
      * @param ZipHelper $zipHelper      Helper to perform tasks with Zip archive
      * @param string    $creator        document creator
+     * @param ODS       $escaper        Used to escape XML data
      */
-    public function __construct(string $baseFolderPath, ZipHelper $zipHelper, string $creator)
+    public function __construct(string $baseFolderPath, ZipHelper $zipHelper, string $creator, ODS $escaper)
     {
         $this->baseFileSystemHelper = new CommonFileSystemHelper($baseFolderPath);
         $this->baseFolderRealPath = $this->baseFileSystemHelper->getBaseFolderRealPath();
         $this->zipHelper = $zipHelper;
         $this->creator = $creator;
+        $this->escaper = $escaper;
     }
 
     public function createFolder(string $parentFolderPath, string $folderName): string
@@ -213,6 +220,49 @@ final class FileSystemHelper implements FileSystemWithRootFolderHelperInterface
     }
 
     /**
+     * Creates the "settings.xml" file under the root folder.
+     *
+     * @param Worksheet[] $worksheets
+     *
+     * @throws IOException
+     */
+    public function createSettingsFile(array $worksheets): self
+    {
+        $settingsXmlFileContents = <<<'EOD'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <office:document-settings xmlns:config="urn:oasis:names:tc:opendocument:xmlns:config:1.0"
+                xmlns:xlink="http://www.w3.org/1999/xlink"
+                xmlns:ooo="http://openoffice.org/2004/office"
+                xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" office:version="1.3">
+                <office:settings>
+                    <config:config-item-set config:name="ooo:view-settings">
+                        <config:config-item-map-indexed config:name="Views">
+                            <config:config-item-map-entry>
+                                <config:config-item config:name="ViewId" config:type="string">view1</config:config-item>
+                                <config:config-item-map-named config:name="Tables">
+            EOD;
+
+        foreach ($worksheets as $worksheet) {
+            if (null !== ($viewSettings = $worksheet->getExternalSheet()->getSheetView())) {
+                $settingsXmlFileContents .= $viewSettings->getXml();
+            }
+        }
+
+        $settingsXmlFileContents .= <<<'EOD'
+                                </config:config-item-map-named>
+                            </config:config-item-map-entry>
+                        </config:config-item-map-indexed>
+                    </config:config-item-set>
+                </office:settings>
+            </office:document-settings>
+            EOD;
+
+        $this->createFileWithContents($this->rootFolder, self::SETTINGS_XML_FILE_NAME, $settingsXmlFileContents);
+
+        return $this;
+    }
+
+    /**
      * Creates the folder that will be used as root.
      *
      * @throws IOException If unable to create the folder
@@ -252,6 +302,7 @@ final class FileSystemHelper implements FileSystemWithRootFolderHelperInterface
                 <manifest:file-entry manifest:full-path="styles.xml" manifest:media-type="text/xml"/>
                 <manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/>
                 <manifest:file-entry manifest:full-path="meta.xml" manifest:media-type="text/xml"/>
+                <manifest:file-entry manifest:full-path="settings.xml" manifest:media-type="text/xml"/>
             </manifest:manifest>
             EOD;
 
@@ -286,7 +337,7 @@ final class FileSystemHelper implements FileSystemWithRootFolderHelperInterface
             <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <office:document-meta office:version="1.2" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0" xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:xlink="http://www.w3.org/1999/xlink">
                 <office:meta>
-                    <dc:creator>{$this->creator}</dc:creator>
+                    <dc:creator>{$this->escaper->escape($this->creator)}</dc:creator>
                     <meta:creation-date>{$createdDate}</meta:creation-date>
                     <dc:date>{$createdDate}</dc:date>
                 </office:meta>

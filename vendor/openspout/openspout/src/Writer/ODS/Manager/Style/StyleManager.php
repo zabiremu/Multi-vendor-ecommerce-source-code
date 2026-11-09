@@ -10,7 +10,8 @@ use OpenSpout\Common\Entity\Style\CellAlignment;
 use OpenSpout\Common\Entity\Style\CellVerticalAlignment;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\Common\AbstractOptions;
-use OpenSpout\Writer\Common\ColumnWidth;
+use OpenSpout\Writer\Common\ColumnAttributesResolver;
+use OpenSpout\Writer\Common\Entity\Sheet;
 use OpenSpout\Writer\Common\Entity\Worksheet;
 use OpenSpout\Writer\Common\Manager\Style\AbstractStyleManager as CommonStyleManager;
 use OpenSpout\Writer\ODS\Helper\BorderHelper;
@@ -20,9 +21,9 @@ use OpenSpout\Writer\ODS\Helper\BorderHelper;
  *
  * @property StyleRegistry $styleRegistry
  */
-final class StyleManager extends CommonStyleManager
+final readonly class StyleManager extends CommonStyleManager
 {
-    private readonly AbstractOptions $options;
+    private AbstractOptions $options;
 
     public function __construct(StyleRegistry $styleRegistry, AbstractOptions $options)
     {
@@ -77,8 +78,8 @@ final class StyleManager extends CommonStyleManager
     {
         $content = '<office:automatic-styles>';
 
-        foreach ($this->styleRegistry->getRegisteredStyles() as $style) {
-            $content .= $this->getStyleSectionContent($style);
+        foreach ($this->styleRegistry->getRegisteredStyles() as $styleId => $style) {
+            $content .= $this->getStyleSectionContent($styleId, $style);
         }
 
         $useOptimalRowHeight = null === $this->options->DEFAULT_ROW_HEIGHT ? 'true' : 'false';
@@ -105,11 +106,7 @@ final class StyleManager extends CommonStyleManager
                 EOD;
         }
 
-        // Sort column widths since ODS cares about order
-        $columnWidths = $this->options->getColumnWidths();
-        usort($columnWidths, static function (ColumnWidth $a, ColumnWidth $b): int {
-            return $a->start <=> $b->start;
-        });
+        $this->options->resolveIntervals();
         $content .= $this->getTableColumnStylesXMLContent();
 
         $content .= '</office:automatic-styles>';
@@ -135,25 +132,80 @@ final class StyleManager extends CommonStyleManager
         return $content;
     }
 
-    public function getStyledTableColumnXMLContent(int $maxNumColumns): string
+    public function getStyledTableColumnXMLContent(int $maxNumColumns, Sheet $sheet): string
     {
-        if ([] === $this->options->getColumnWidths()) {
+        $columnWidths = $this->options->getColumnWidths();
+        $collapsedColumns = self::buildCollapsedColumnMap($sheet);
+
+        if ([] === $columnWidths && [] === $collapsedColumns) {
             return '';
         }
 
         $content = '';
-        foreach ($this->options->getColumnWidths() as $styleIndex => $columnWidth) {
+        $currentCol = 1;
+        foreach ($columnWidths as $styleIndex => $columnWidth) {
+            if ($currentCol < $columnWidth->start) {
+                $content .= self::renderTableColumns('"ce1"', 'default-column-style', $currentCol, $columnWidth->start - $currentCol, $collapsedColumns);
+            }
             $numCols = $columnWidth->end - $columnWidth->start + 1;
-            $content .= <<<EOD
-                <table:table-column table:default-cell-style-name='Default' table:style-name="co{$styleIndex}" table:number-columns-repeated="{$numCols}"/>
-                EOD;
+            $content .= self::renderTableColumns("'Default'", 'co'.$styleIndex, $columnWidth->start, $numCols, $collapsedColumns);
+            $currentCol = $columnWidth->end + 1;
         }
-        \assert(isset($columnWidth));
-        // Note: This assumes the column widths are contiguous and default width is
-        // only applied to columns after the last custom column with a custom width
-        $content .= '<table:table-column table:default-cell-style-name="ce1" table:style-name="default-column-style" table:number-columns-repeated="'.($maxNumColumns - $columnWidth->end).'"/>';
+
+        if ($currentCol <= $maxNumColumns) {
+            $content .= self::renderTableColumns('"ce1"', 'default-column-style', $currentCol, $maxNumColumns - $currentCol + 1, $collapsedColumns);
+        }
 
         return $content;
+    }
+
+    /**
+     * Splits a run of columns sharing a style into "<table:table-column>" elements,
+     * adding table:visibility="collapse" to the sub-runs that are hidden or collapsed.
+     *
+     * @param string                    $defaultCellStyle Quoted table:default-cell-style-name value (e.g. "'Default'")
+     * @param positive-int              $startCol
+     * @param array<positive-int, true> $collapsedColumns
+     */
+    private static function renderTableColumns(string $defaultCellStyle, string $styleName, int $startCol, int $count, array $collapsedColumns): string
+    {
+        $content = '';
+        $endCol = $startCol + $count - 1;
+        $runStart = $startCol;
+        for ($column = $startCol; $column <= $endCol; ++$column) {
+            $runEnds = $column === $endCol
+                || isset($collapsedColumns[$column]) !== isset($collapsedColumns[$column + 1]);
+            if (!$runEnds) {
+                continue;
+            }
+            $repeated = $column - $runStart + 1;
+            $visibility = isset($collapsedColumns[$runStart]) ? ' table:visibility="collapse"' : '';
+            $content .= '<table:table-column table:default-cell-style-name='.$defaultCellStyle.' table:style-name="'.$styleName.'"'.$visibility.' table:number-columns-repeated="'.$repeated.'"/>';
+            $runStart = $column + 1;
+        }
+
+        return $content;
+    }
+
+    /**
+     * Builds the set of columns that must be visually collapsed in ODS
+     * (hidden and collapsed both map to table:visibility="collapse").
+     *
+     * @return array<positive-int, true>
+     */
+    private static function buildCollapsedColumnMap(Sheet $sheet): array
+    {
+        $collapsedColumns = [];
+        foreach ((new ColumnAttributesResolver())->resolve($sheet) as $resolvedColumn) {
+            if (true !== $resolvedColumn->hidden && true !== $resolvedColumn->collapsed) {
+                continue;
+            }
+            for ($column = $resolvedColumn->start; $column <= $resolvedColumn->end; ++$column) {
+                $collapsedColumns[$column] = true;
+            }
+        }
+
+        return $collapsedColumns;
     }
 
     /**
@@ -170,9 +222,9 @@ final class StyleManager extends CommonStyleManager
                 </number:number-style>
                 <style:style style:data-style-name="N0" style:family="table-cell" style:name="Default">
                     <style:table-cell-properties fo:background-color="transparent" style:vertical-align="automatic"/>
-                    <style:text-properties fo:color="#{$defaultStyle->getFontColor()}"
-                                           fo:font-size="{$defaultStyle->getFontSize()}pt" style:font-size-asian="{$defaultStyle->getFontSize()}pt" style:font-size-complex="{$defaultStyle->getFontSize()}pt"
-                                           style:font-name="{$defaultStyle->getFontName()}" style:font-name-asian="{$defaultStyle->getFontName()}" style:font-name-complex="{$defaultStyle->getFontName()}"/>
+                    <style:text-properties fo:color="#{$defaultStyle->fontColor}"
+                                           fo:font-size="{$defaultStyle->fontSize}pt" style:font-size-asian="{$defaultStyle->fontSize}pt" style:font-size-complex="{$defaultStyle->fontSize}pt"
+                                           style:font-name="{$defaultStyle->fontName}" style:font-name-asian="{$defaultStyle->fontName}" style:font-name-complex="{$defaultStyle->fontName}"/>
                 </style:style>
             </office:styles>
             EOD;
@@ -244,9 +296,9 @@ final class StyleManager extends CommonStyleManager
     /**
      * Returns the contents of the "<style:style>" section, inside "<office:automatic-styles>" section.
      */
-    private function getStyleSectionContent(Style $style): string
+    private function getStyleSectionContent(int $styleId, Style $style): string
     {
-        $styleIndex = $style->getId() + 1; // 1-based
+        $styleIndex = $styleId + 1; // 1-based
 
         $content = '<style:style style:data-style-name="N0" style:family="table-cell" style:name="ce'.$styleIndex.'" style:parent-style-name="Default">';
 
@@ -264,7 +316,7 @@ final class StyleManager extends CommonStyleManager
      */
     private function getTextPropertiesSectionContent(Style $style): string
     {
-        if (!$style->shouldApplyFont()) {
+        if (!$style->shouldApplyFont) {
             return '';
         }
 
@@ -281,31 +333,31 @@ final class StyleManager extends CommonStyleManager
         $defaultStyle = $this->getDefaultStyle();
         $content = '';
 
-        $fontColor = $style->getFontColor();
-        if ($fontColor !== $defaultStyle->getFontColor()) {
+        $fontColor = $style->fontColor;
+        if ($fontColor !== $defaultStyle->fontColor) {
             $content .= ' fo:color="#'.$fontColor.'"';
         }
 
-        $fontName = $style->getFontName();
-        if ($fontName !== $defaultStyle->getFontName()) {
+        $fontName = $style->fontName;
+        if ($fontName !== $defaultStyle->fontName) {
             $content .= ' style:font-name="'.$fontName.'" style:font-name-asian="'.$fontName.'" style:font-name-complex="'.$fontName.'"';
         }
 
-        $fontSize = $style->getFontSize();
-        if ($fontSize !== $defaultStyle->getFontSize()) {
+        $fontSize = $style->fontSize;
+        if ($fontSize !== $defaultStyle->fontSize) {
             $content .= ' fo:font-size="'.$fontSize.'pt" style:font-size-asian="'.$fontSize.'pt" style:font-size-complex="'.$fontSize.'pt"';
         }
 
-        if ($style->isFontBold()) {
+        if ($style->fontBold) {
             $content .= ' fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold"';
         }
-        if ($style->isFontItalic()) {
+        if ($style->fontItalic) {
             $content .= ' fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic"';
         }
-        if ($style->isFontUnderline()) {
+        if ($style->fontUnderline) {
             $content .= ' style:text-underline-style="solid" style:text-underline-type="single"';
         }
-        if ($style->isFontStrikethrough()) {
+        if ($style->fontStrikethrough) {
             $content .= ' style:text-line-through-style="solid"';
         }
 
@@ -317,13 +369,12 @@ final class StyleManager extends CommonStyleManager
      */
     private function getParagraphPropertiesSectionContent(Style $style): string
     {
-        if (!$style->shouldApplyCellAlignment() && !$style->shouldApplyCellVerticalAlignment()) {
+        if (null === $style->cellAlignment) {
             return '';
         }
 
         return '<style:paragraph-properties '
             .$this->getCellAlignmentSectionContent($style)
-            .$this->getCellVerticalAlignmentSectionContent($style)
             .'/>';
     }
 
@@ -332,13 +383,13 @@ final class StyleManager extends CommonStyleManager
      */
     private function getCellAlignmentSectionContent(Style $style): string
     {
-        if (!$style->hasSetCellAlignment()) {
+        if (null === $style->cellAlignment) {
             return '';
         }
 
         return \sprintf(
             ' fo:text-align="%s" ',
-            $this->transformCellAlignment($style->getCellAlignment())
+            $this->transformCellAlignment($style->cellAlignment)
         );
     }
 
@@ -347,13 +398,13 @@ final class StyleManager extends CommonStyleManager
      */
     private function getCellVerticalAlignmentSectionContent(Style $style): string
     {
-        if (!$style->hasSetCellVerticalAlignment()) {
+        if (null === $style->cellVerticalAlignment) {
             return '';
         }
 
         return \sprintf(
-            ' fo:vertical-align="%s" ',
-            $this->transformCellVerticalAlignment($style->getCellVerticalAlignment())
+            ' style:vertical-align="%s" ',
+            $this->transformCellVerticalAlignment($style->cellVerticalAlignment)
         );
     }
 
@@ -362,12 +413,12 @@ final class StyleManager extends CommonStyleManager
      * respectively as "start" and "end", using the recommended values increase compatibility
      * with software that will read the created ODS file.
      */
-    private function transformCellAlignment(string $cellAlignment): string
+    private function transformCellAlignment(CellAlignment $cellAlignment): string
     {
         return match ($cellAlignment) {
             CellAlignment::LEFT => 'start',
             CellAlignment::RIGHT => 'end',
-            default => $cellAlignment,
+            default => $cellAlignment->value,
         };
     }
 
@@ -375,11 +426,11 @@ final class StyleManager extends CommonStyleManager
      * Spec uses 'middle' rather than 'center'
      * http://docs.oasis-open.org/office/v1.2/os/OpenDocument-v1.2-os-part1.html#__RefHeading__1420236_253892949.
      */
-    private function transformCellVerticalAlignment(string $cellVerticalAlignment): string
+    private function transformCellVerticalAlignment(CellVerticalAlignment $cellVerticalAlignment): string
     {
         return (CellVerticalAlignment::CENTER === $cellVerticalAlignment)
             ? 'middle'
-            : $cellVerticalAlignment;
+            : $cellVerticalAlignment->value;
     }
 
     /**
@@ -389,17 +440,19 @@ final class StyleManager extends CommonStyleManager
     {
         $content = '<style:table-cell-properties ';
 
-        if ($style->hasSetWrapText()) {
-            $content .= $this->getWrapTextXMLContent($style->shouldWrapText());
+        if (null !== $style->shouldWrapText) {
+            $content .= $this->getWrapTextXMLContent($style->shouldWrapText);
         }
 
-        if (null !== ($border = $style->getBorder())) {
+        if (null !== ($border = $style->border)) {
             $content .= $this->getBorderXMLContent($border);
         }
 
-        if (null !== ($bgColor = $style->getBackgroundColor())) {
+        if (null !== ($bgColor = $style->backgroundColor)) {
             $content .= $this->getBackgroundColorXMLContent($bgColor);
         }
+
+        $content .= $this->getCellVerticalAlignmentSectionContent($style);
 
         $content .= '/>';
 

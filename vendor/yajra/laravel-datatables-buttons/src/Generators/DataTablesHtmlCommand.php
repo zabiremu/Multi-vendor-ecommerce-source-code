@@ -2,6 +2,7 @@
 
 namespace Yajra\DataTables\Generators;
 
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Str;
 
 class DataTablesHtmlCommand extends DataTablesMakeCommand
@@ -37,9 +38,8 @@ class DataTablesHtmlCommand extends DataTablesMakeCommand
      * Build the class with the given name.
      *
      * @param  string  $name
-     * @return string
      *
-     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
+     * @throws FileNotFoundException
      */
     protected function buildClass($name): string
     {
@@ -48,18 +48,16 @@ class DataTablesHtmlCommand extends DataTablesMakeCommand
         $stub = $this->replaceNamespace($stub, $name)->replaceClass($stub, $name);
 
         $this->replaceBuilder($stub)
-             ->replaceColumns($stub)
-             ->replaceButtons($stub)
-             ->replaceDOM($stub)
-             ->replaceTableId($stub);
+            ->replaceColumns($stub)
+            ->replaceButtons($stub)
+            ->replaceDOM($stub)
+            ->replaceTableId($stub);
 
         return $stub;
     }
 
     /**
      * Get the stub file for the generator.
-     *
-     * @return string
      */
     protected function getStub(): string
     {
@@ -72,7 +70,6 @@ class DataTablesHtmlCommand extends DataTablesMakeCommand
      * Parse the name and format according to the root namespace.
      *
      * @param  string  $name
-     * @return string
      */
     protected function qualifyClass($name): string
     {
@@ -92,6 +89,6 @@ class DataTablesHtmlCommand extends DataTablesMakeCommand
             $name = preg_replace('#datatablehtml$#i', 'DataTableHtml', $name);
         }
 
-        return $this->getDefaultNamespace(trim($rootNamespace, '\\')).'\\'.$name;
+        return $this->getDefaultNamespace(trim((string) $rootNamespace, '\\')).'\\'.$name;
     }
 }

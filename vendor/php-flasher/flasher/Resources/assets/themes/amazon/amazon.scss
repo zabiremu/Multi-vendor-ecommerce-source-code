@@ -1,0 +1,257 @@
+.fl-amazon {
+    --amazon-bg-light: #ffffff;
+    --amazon-bg-dark: #202124;
+    --amazon-text-light: #0f1111;
+    --amazon-text-secondary-light: #565959;
+    --amazon-text-dark: #ffffff;
+    --amazon-text-secondary-dark: #b6b6b6;
+    --amazon-border-light: #ddd;
+    --amazon-border-dark: #3f3f3f;
+    --amazon-yellow: #ffd814;
+    --amazon-orange: #ff9900;
+
+    --amazon-success-bg: #f0fff5;
+    --amazon-success-border: #7fda95;
+    --amazon-success-icon: #007600;
+    --amazon-info-bg: #f3f9ff;
+    --amazon-info-border: #7fb4da;
+    --amazon-info-icon: #0066c0;
+    --amazon-warning-bg: #fffcf3;
+    --amazon-warning-border: #ffd996;
+    --amazon-warning-icon: #c45500;
+    --amazon-error-bg: #fff5f5;
+    --amazon-error-border: #ff8f8f;
+    --amazon-error-icon: #c40000;
+
+    --amazon-success-bg-dark: #082d11;
+    --amazon-success-border-dark: #1e6e2c;
+    --amazon-success-icon-dark: #7fda95;
+    --amazon-info-bg-dark: #0a1c2e;
+    --amazon-info-border-dark: #1a5183;
+    --amazon-info-icon-dark: #7fb4da;
+    --amazon-warning-bg-dark: #342a0a;
+    --amazon-warning-border-dark: #705711;
+    --amazon-warning-icon-dark: #ffd996;
+    --amazon-error-bg-dark: #2b0c0c;
+    --amazon-error-border-dark: #721c1c;
+    --amazon-error-icon-dark: #ff8f8f;
+
+    --amazon-animation-duration: 0.2s;
+}
+
+@keyframes amazonSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fl-amazon {
+    position: relative;
+    margin: 10px 0;
+    font-family: Arial, sans-serif;
+    animation: amazonSlideDown var(--amazon-animation-duration) ease-out;
+
+    .fl-amazon-alert {
+        background-color: var(--amazon-bg-light);
+        color: var(--amazon-text-light);
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(15, 17, 17, 0.15);
+        padding: 14px;
+        display: flex;
+        border: 1px solid;
+        border-left-width: 4px;
+    }
+
+    .fl-alert-content {
+        display: flex;
+        align-items: flex-start;
+        flex: 1;
+    }
+
+    .fl-icon-container {
+        margin-right: 12px;
+        flex-shrink: 0;
+        color: currentColor;
+    }
+
+    .fl-text-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .fl-alert-title {
+        font-weight: 700;
+        font-size: 16px;
+        margin-bottom: 4px;
+    }
+
+    .fl-alert-message {
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--amazon-text-secondary-light);
+    }
+
+    .fl-alert-actions {
+        margin-left: 16px;
+    }
+
+    .fl-close {
+        background: none;
+        border: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--amazon-text-secondary-light);
+        transition: all 0.2s;
+        padding: 0;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: var(--amazon-text-light);
+        }
+    }
+
+    &.fl-success {
+        .fl-amazon-alert {
+            background-color: var(--amazon-success-bg);
+            border-color: var(--amazon-success-border);
+        }
+
+        .fl-icon-container {
+            color: var(--amazon-success-icon);
+        }
+    }
+
+    &.fl-info {
+        .fl-amazon-alert {
+            background-color: var(--amazon-info-bg);
+            border-color: var(--amazon-info-border);
+        }
+
+        .fl-icon-container {
+            color: var(--amazon-info-icon);
+        }
+    }
+
+    &.fl-warning {
+        .fl-amazon-alert {
+            background-color: var(--amazon-warning-bg);
+            border-color: var(--amazon-warning-border);
+        }
+
+        .fl-icon-container {
+            color: var(--amazon-warning-icon);
+        }
+    }
+
+    &.fl-error {
+        .fl-amazon-alert {
+            background-color: var(--amazon-error-bg);
+            border-color: var(--amazon-error-border);
+        }
+
+        .fl-icon-container {
+            color: var(--amazon-error-icon);
+        }
+    }
+
+    &.fl-rtl {
+        direction: rtl;
+
+        .fl-icon-container {
+            margin-right: 0;
+            margin-left: 12px;
+        }
+
+        .fl-alert-actions {
+            margin-left: 0;
+            margin-right: 16px;
+        }
+
+        .fl-amazon-alert {
+            border-left-width: 1px;
+            border-right-width: 4px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+}
+
+body.fl-dark .fl-amazon,
+html.fl-dark .fl-amazon,
+.fl-amazon.fl-auto-dark {
+    .fl-amazon-alert {
+        background-color: var(--amazon-bg-dark);
+        color: var(--amazon-text-dark);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        border-color: var(--amazon-border-dark);
+    }
+
+    .fl-alert-message {
+        color: var(--amazon-text-secondary-dark);
+    }
+
+    .fl-close {
+        color: var(--amazon-text-secondary-dark);
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--amazon-text-dark);
+        }
+    }
+
+    &.fl-success {
+        .fl-amazon-alert {
+            background-color: var(--amazon-success-bg-dark);
+            border-color: var(--amazon-success-border-dark);
+        }
+
+        .fl-icon-container {
+            color: var(--amazon-success-icon-dark);
+        }
+    }
+
+    &.fl-info {
+        .fl-amazon-alert {
+            background-color: var(--amazon-info-bg-dark);
+            border-color: var(--amazon-info-border-dark);
+        }
+
+        .fl-icon-container {
+            color: var(--amazon-info-icon-dark);
+        }
+    }
+
+    &.fl-warning {
+        .fl-amazon-alert {
+            background-color: var(--amazon-warning-bg-dark);
+            border-color: var(--amazon-warning-border-dark);
+        }
+
+        .fl-icon-container {
+            color: var(--amazon-warning-icon-dark);
+        }
+    }
+
+    &.fl-error {
+        .fl-amazon-alert {
+            background-color: var(--amazon-error-bg-dark);
+            border-color: var(--amazon-error-border-dark);
+        }
+
+        .fl-icon-container {
+            color: var(--amazon-error-icon-dark);
+        }
+    }
+}

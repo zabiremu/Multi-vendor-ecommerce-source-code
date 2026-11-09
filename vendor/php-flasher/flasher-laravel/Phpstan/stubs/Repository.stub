@@ -1,0 +1,76 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Illuminate\Contracts\Config;
+
+/**
+ * Repository - PHPStan stub for Laravel's Config Repository.
+ *
+ * This stub file enhances PHPStan's static analysis for PHPFlasher by
+ * providing detailed type information for Laravel's configuration repository,
+ * particularly for PHPFlasher's configuration structure.
+ *
+ * Design pattern: Type Annotation - Provides detailed type information for static analysis
+ *
+ * @phpstan-type ConfigType array{
+ *     default: string,
+ *     main_script: string,
+ *     translate: bool,
+ *     inject_assets: bool,
+ *     scripts: string[],
+ *     styles: string[],
+ *     options: array<string, mixed>,
+ *     excluded_paths?: list<non-empty-string>,
+ *     filter: array<string, mixed>,
+ *     flash_bag: array<string, string[]>,
+ *     presets: array<string, PresetType>,
+ *     plugins: array<string, PluginType>,
+ *     themes: array<string, ThemeType>,
+ * }
+ *
+ * @phpstan-type PresetType array{
+ *     type: string,
+ *     title: string,
+ *     message: string,
+ *     options: array<string, mixed>,
+ * }
+ *
+ * @phpstan-type PluginType array{
+ *     scripts?: string[],
+ *     styles?: string[],
+ *     options?: array<string, mixed>,
+ * }
+ *
+ * @phpstan-type ThemeType array{
+ *     scripts?: string[],
+ *     styles?: string[],
+ *     options?: array<string, mixed>,
+ * }
+ */
+interface Repository
+{
+    /**
+     * Get a configuration value.
+     *
+     * This stub provides detailed return type information for PHPFlasher's
+     * configuration structure, enabling better static analysis.
+     *
+     * @param string[]|string $key     The configuration key
+     * @param mixed           $default Default value if key doesn't exist
+     *
+     * @return mixed The configuration value with precise type information for PHPFlasher keys
+     *
+     * @phpstan-return ($key is 'flasher' ? ConfigType :
+     *            ($key is 'flasher.default' ? string :
+     *            ($key is 'flasher.main_script' ? string :
+     *            ($key is 'flasher.filter' ? array<string, mixed> :
+     *            ($key is 'flasher.presets' ? array<string, PresetType> :
+     *            ($key is 'flasher.plugins' ? array<string, PluginType> :
+     *            ($key is 'flasher.themes' ? array<string, ThemeType> :
+     *            ($key is 'flasher.flash_bag' ? array<string, string[]> :
+     *            ($key is 'flasher.excluded_paths' ? list<non-empty-string> :
+     *                  mixed)))))))))
+     */
+    public function get(string|array $key, mixed $default = null): mixed;
+}

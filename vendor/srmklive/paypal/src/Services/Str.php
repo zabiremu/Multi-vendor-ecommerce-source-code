@@ -2,20 +2,21 @@
 
 namespace Srmklive\PayPal\Services;
 
-use GuzzleHttp\Utils;
-
+/**
+ * @deprecated No longer used by this package. Use json_validate() (PHP 8.3+)
+ *             or json_decode() with JSON_THROW_ON_ERROR instead. Will be
+ *             removed in the next major version.
+ */
 class Str extends \Illuminate\Support\Str
 {
     /**
      * Determine if a given value is valid JSON.
      *
-     * @param mixed $value
-     *
-     * @return bool
+     * @param  mixed  $value
      */
     public static function isJson($value): bool
     {
-        if (!is_string($value)) {
+        if (! is_string($value)) {
             return false;
         }
 
@@ -24,8 +25,8 @@ class Str extends \Illuminate\Support\Str
         }
 
         try {
-            Utils::jsonDecode($value, true, 512, 4194304);
-        } catch (\JsonException $jsonException) {
+            json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
             return false;
         }
 

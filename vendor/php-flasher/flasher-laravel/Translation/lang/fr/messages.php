@@ -1,10 +1,8 @@
 <?php
 
-/*
- * This file is part of the PHPFlasher package.
- * (c) Younes KHOUBZA <younes.khoubza@gmail.com>
+declare(strict_types=1);
+
+/**
+ * @return array<string, string>
  */
-
-use Flasher\Prime\Translation\Messages;
-
-return Messages::$fr;
+return Flasher\Prime\Translation\Messages::get('fr');

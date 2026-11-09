@@ -16,12 +16,12 @@ final class SheetManager
     /**
      * Sheet name should not exceed 31 characters.
      */
-    public const MAX_LENGTH_SHEET_NAME = 31;
+    public const int MAX_LENGTH_SHEET_NAME = 31;
 
     /**
      * Invalid characters that cannot be contained in the sheet name.
      */
-    private const INVALID_CHARACTERS_IN_SHEET_NAME = ['\\', '/', '?', '*', ':', '[', ']'];
+    private const array INVALID_CHARACTERS_IN_SHEET_NAME = ['\\', '/', '?', '*', ':', '[', ']'];
 
     /** @var array<string, array<int, string>> Associative array [WORKBOOK_ID] => [[SHEET_INDEX] => [SHEET_NAME]] keeping track of sheets' name to enforce uniqueness per workbook */
     private static array $SHEETS_NAME_USED = [];
@@ -65,6 +65,10 @@ final class SheetManager
 
             if ($this->doesStartOrEndWithSingleQuote($name)) {
                 $failedRequirements[] = 'It should not start or end with a single quote';
+            }
+
+            if ($this->isReservedSheetName($name)) {
+                $failedRequirements[] = 'It should not be a reserved name ("History")';
             }
         }
 
@@ -112,6 +116,17 @@ final class SheetManager
         $endsWithSingleQuote = ($this->stringHelper->getCharLastOccurrencePosition('\'', $name) === ($this->stringHelper->getStringLength($name) - 1));
 
         return $startsWithSingleQuote || $endsWithSingleQuote;
+    }
+
+    /**
+     * Returns whether the given name is one of the names that are reserved
+     * by Excel and therefore cannot be used for a worksheet.
+     *
+     * @return bool TRUE if the name is reserved, FALSE otherwise
+     */
+    private function isReservedSheetName(string $name): bool
+    {
+        return 0 === strcasecmp($name, 'History');
     }
 
     /**

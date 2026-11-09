@@ -2,28 +2,41 @@
 
 namespace Yajra\DataTables;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Bus;
-use Yajra\DataTables\Jobs\DataTableExportJob;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Yajra\DataTables\Services\DataTable;
+use Yajra\DataTables\Support\QueuedExportManager;
 
 /**
- * @mixin \Yajra\DataTables\Services\DataTable
+ * @mixin DataTable
  */
 trait WithExportQueue
 {
     /**
      * Process dataTables needed render output.
      *
-     * @param  string|null  $view
-     * @param  array  $data
-     * @param  array  $mergeData
      * @return mixed
      *
      * @throws \Throwable
      */
-    public function render(string $view = null, array $data = [], array $mergeData = [])
+    public function render(?string $view = null, array $data = [], array $mergeData = [])
     {
-        if (request()->ajax() && request('action') == 'exportQueue') {
+        $action = request('action');
+
+        if (request()->ajax() && $action === 'queuedExportStart') {
+            return $this->queuedExportStart();
+        }
+
+        if ($action === 'queuedExportStatus') {
+            return $this->queuedExportStatus();
+        }
+
+        if ($action === 'queuedExportDownload') {
+            return $this->queuedExportDownload();
+        }
+
+        if (request()->ajax() && $action === 'exportQueue') {
             return $this->exportQueue();
         }
 
@@ -33,32 +46,61 @@ trait WithExportQueue
     /**
      * Create and run batch job.
      *
-     * @return string
      *
      * @throws \Throwable
      */
     public function exportQueue(): string
     {
-        $job = new DataTableExportJob(
-            [self::class, $this->attributes],
-            request()->all(),
-            Auth::id() ?? 0,
+        $batch = $this->exportManager()->dispatch(
+            $this,
+            $this->attributes,
+            request(),
+            Auth::id(),
             $this->sheetName(),
         );
-
-        $batch = Bus::batch([$job])->name('datatables-export')->dispatch();
 
         return $batch->id;
     }
 
     /**
+     * Start a queued export using the JSON protocol.
+     *
+     * @throws \Throwable
+     */
+    public function queuedExportStart(): JsonResponse
+    {
+        return $this->exportManager()->start(
+            $this,
+            $this->attributes,
+            request(),
+            Auth::id(),
+            $this->sheetName(),
+        );
+    }
+
+    public function queuedExportStatus(): JsonResponse
+    {
+        return $this->exportManager()->status(request());
+    }
+
+    public function queuedExportDownload(): StreamedResponse
+    {
+        return $this->exportManager()->download(request());
+    }
+
+    /**
      * Default sheet name.
      * Character limit 31.
-     *
-     * @return string
      */
     protected function sheetName(): string
     {
-        return request('sheetName', 'Sheet1');
+        $sheetName = request('sheetName', request('sheet_name', 'Sheet1'));
+
+        return is_string($sheetName) ? $sheetName : 'Sheet1';
+    }
+
+    protected function exportManager(): QueuedExportManager
+    {
+        return resolve(QueuedExportManager::class);
     }
 }

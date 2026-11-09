@@ -2,6 +2,8 @@
 
 namespace Srmklive\PayPal\Traits\PayPalAPI;
 
+use Psr\Http\Message\StreamInterface;
+
 trait Orders
 {
     use Orders\Helpers;
@@ -9,11 +11,13 @@ trait Orders
     /**
      * Creates an order.
      *
-     * @param array $data
+     *
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, mixed>|StreamInterface|string
      *
      * @throws \Throwable
-     *
-     * @return array|\Psr\Http\Message\StreamInterface|string
      *
      * @see https://developer.paypal.com/docs/api/orders/v2/#orders_create
      */
@@ -31,17 +35,17 @@ trait Orders
     /**
      * Shows details for an order.
      *
-     * @param string $order_id
+     * @param list<string> $fields Additional fields to return; PayPal supports 'payment_source'.
+     *
+     * @return array<string, mixed>|StreamInterface|string
      *
      * @throws \Throwable
      *
-     * @return array|\Psr\Http\Message\StreamInterface|string
-     *
      * @see https://developer.paypal.com/docs/api/orders/v2/#orders_get
      */
-    public function showOrderDetails(string $order_id)
+    public function showOrderDetails(string $order_id, array $fields = [])
     {
-        $this->apiEndPoint = "v2/checkout/orders/{$order_id}";
+        $this->apiEndPoint = "v2/checkout/orders/{$order_id}".($fields !== [] ? '?fields='.implode(',', $fields) : '');
 
         $this->verb = 'get';
 
@@ -51,12 +55,13 @@ trait Orders
     /**
      * Update order details.
      *
-     * @param string $order_id
-     * @param array  $data
+     *
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, mixed>|StreamInterface|string
      *
      * @throws \Throwable
-     *
-     * @return array|\Psr\Http\Message\StreamInterface|string
      *
      * @see https://developer.paypal.com/docs/api/orders/v2/#orders_patch
      */
@@ -74,12 +79,13 @@ trait Orders
     /**
      * Confirm the order.
      *
-     * @param string $order_id
-     * @param array  $data
+     *
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, mixed>|StreamInterface|string
      *
      * @throws \Throwable
-     *
-     * @return array|\Psr\Http\Message\StreamInterface|string
      */
     public function confirmOrder(string $order_id, array $data)
     {
@@ -95,12 +101,13 @@ trait Orders
     /**
      * Authorizes payment for an order.
      *
-     * @param string $order_id
-     * @param array  $data
+     *
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, mixed>|StreamInterface|string
      *
      * @throws \Throwable
-     *
-     * @return array|\Psr\Http\Message\StreamInterface|string
      *
      * @see https://developer.paypal.com/docs/api/orders/v2/#orders_authorize
      */
@@ -118,12 +125,13 @@ trait Orders
     /**
      * Captures payment for an order.
      *
-     * @param string $order_id
-     * @param array  $data
+     *
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, mixed>|StreamInterface|string
      *
      * @throws \Throwable
-     *
-     * @return array|\Psr\Http\Message\StreamInterface|string
      *
      * @see https://developer.paypal.com/docs/api/orders/v2/#orders_capture
      */
@@ -141,12 +149,13 @@ trait Orders
     /**
      * Add tracking information for an Order.
      *
-     * @param string $order_id
-     * @param array  $data
+     *
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, mixed>|StreamInterface|string
      *
      * @throws \Throwable
-     *
-     * @return array|\Psr\Http\Message\StreamInterface|string
      *
      * @see https://developer.paypal.com/docs/api/orders/v2/#orders_track_create
      */
@@ -159,5 +168,48 @@ trait Orders
         $this->verb = 'post';
 
         return $this->doPayPalRequest();
+    }
+
+    /**
+     * Update tracking information for an Order.
+     *
+     * Sends a JSON Patch array. PayPal supports replacing `items`, replacing or
+     * adding `notify_payer`, and replacing `status` with CANCELLED (see
+     * cancelTrackingForOrder()). The tracker ID is returned by
+     * addTrackingForOrder() in purchase_units[].shipping.trackers[].id.
+     *
+     * @param list<array<string, mixed>> $patch JSON Patch operations.
+     *
+     * @return array<string, mixed>|StreamInterface|string Empty array on success (204).
+     *
+     * @throws \Throwable
+     *
+     * @see https://developer.paypal.com/docs/api/orders/v2/#orders_trackers_patch
+     */
+    public function updateTrackingForOrder(string $order_id, string $tracker_id, array $patch)
+    {
+        $this->apiEndPoint = "v2/checkout/orders/{$order_id}/trackers/{$tracker_id}";
+
+        $this->options['json'] = $patch;
+
+        $this->verb = 'patch';
+
+        return $this->doPayPalRequest();
+    }
+
+    /**
+     * Cancel tracking information for an Order.
+     *
+     * @return array<string, mixed>|StreamInterface|string Empty array on success (204).
+     *
+     * @throws \Throwable
+     *
+     * @see https://developer.paypal.com/docs/api/orders/v2/#orders_trackers_patch
+     */
+    public function cancelTrackingForOrder(string $order_id, string $tracker_id)
+    {
+        return $this->updateTrackingForOrder($order_id, $tracker_id, [
+            ['op' => 'replace', 'path' => '/status', 'value' => 'CANCELLED'],
+        ]);
     }
 }

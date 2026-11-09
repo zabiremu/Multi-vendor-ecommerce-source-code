@@ -1,31 +1,22 @@
 <?php
 
-/*
- * This file is part of the PHPFlasher package.
- * (c) Younes KHOUBZA <younes.khoubza@gmail.com>
- */
+declare(strict_types=1);
 
 namespace Flasher\Prime\Stamp;
 
-final class HopsStamp implements StampInterface
+final readonly class HopsStamp implements StampInterface
 {
     /**
-     * @var int
+     * @throws \InvalidArgumentException
      */
-    private $amount;
-
-    /**
-     * @param int $amount
-     */
-    public function __construct($amount)
+    public function __construct(private int $amount)
     {
-        $this->amount = $amount;
+        if ($amount < 1) {
+            throw new \InvalidArgumentException('Hops amount must be a positive integer (>= 1).');
+        }
     }
 
-    /**
-     * @return int
-     */
-    public function getAmount()
+    public function getAmount(): int
     {
         return $this->amount;
     }

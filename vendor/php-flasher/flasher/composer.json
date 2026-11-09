@@ -1,50 +1,40 @@
 {
     "name": "php-flasher/flasher",
-    "description": "PHPFlasher - A powerful & easy-to-use package for adding flash messages to Laravel or Symfony projects. Provides feedback to users, improves engagement & enhances user experience. Intuitive design for beginners & experienced developers. A reliable, flexible solution.",
-    "license": "MIT",
     "type": "library",
+    "license": "MIT",
+    "homepage": "https://php-flasher.io",
+    "description": "The foundational PHP library for PHPFlasher, enabling the creation of framework-agnostic flash notifications. Ideal for building custom integrations or for use in PHP projects.",
     "keywords": [
-        "php-flasher",
-        "flash-messages",
-        "notification-system",
-        "user-feedback",
-        "toastr",
-        "sweetalert",
-        "pnotify",
-        "noty",
-        "notyf",
-        "desktop-notifications",
         "php",
-        "laravel",
-        "symfony",
-        "javascript",
-        "yoeunes",
+        "flasher-core",
         "framework-agnostic",
-        "phpstorm-auto-complete",
-        "custom-adapter",
-        "user-experience",
-        "rtl",
-        "dark-mode"
+        "custom-integrations",
+        "flash-notifications",
+        "open-source"
     ],
+    "support": {
+        "issues": "https://github.com/php-flasher/php-flasher/issues",
+        "source": "https://github.com/php-flasher/php-flasher"
+    },
     "authors": [
         {
-            "name": "Younes KHOUBZA",
-            "email": "younes.khoubza@gmail.com",
-            "homepage": "https://www.linkedin.com/in/younes-khoubza",
+            "name": "Younes ENNAJI",
+            "email": "younes.ennaji.pro@gmail.com",
+            "homepage": "https://www.linkedin.com/in/younes--ennaji/",
             "role": "Developer"
         }
     ],
-    "homepage": "https://php-flasher.io",
-    "require": {
-        "php": ">=5.3"
-    },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true,
+    "require": {
+        "php": ">=8.2"
+    },
     "autoload": {
         "psr-4": {
             "Flasher\\Prime\\": ""
         },
         "files": [
+            "functions.php",
             "helpers.php"
         ]
     },

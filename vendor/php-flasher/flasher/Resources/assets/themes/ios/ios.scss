@@ -1,0 +1,197 @@
+.fl-ios {
+    --ios-bg-light: rgba(255, 255, 255);
+    --ios-bg-dark: rgba(30, 30, 30);
+    --ios-text-light: #000000;
+    --ios-text-secondary-light: #6e6e6e;
+    --ios-text-dark: #ffffff;
+    --ios-text-secondary-dark: #a8a8a8;
+    --ios-border-radius: 13px;
+    --ios-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    --ios-shadow-dark: 0 2px 12px rgba(0, 0, 0, 0.35);
+    --ios-icon-size: 18px;
+    --ios-blur: 30px;
+    --ios-success: #34c759;
+    --ios-info: #007aff;
+    --ios-warning: #ff9500;
+    --ios-error: #ff3b30;
+    --ios-animation-duration: 0.4s;
+}
+@keyframes iosSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-15px) scale(0.96);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+@keyframes iosExpand {
+    0% {
+        max-height: 0;
+        opacity: 0;
+    }
+    100% {
+        max-height: 100px;
+        opacity: 1;
+    }
+}
+.fl-ios {
+    position: relative;
+    margin: 10px 0;
+    font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    animation: iosSlideIn var(--ios-animation-duration) cubic-bezier(0.23, 1, 0.32, 1);
+    will-change: transform, opacity;
+    .fl-ios-notification {
+        background-color: var(--ios-bg-light);
+        color: var(--ios-text-light);
+        border-radius: var(--ios-border-radius);
+        box-shadow: var(--ios-shadow);
+        padding: 12px 15px;
+        position: relative;
+        backdrop-filter: blur(var(--ios-blur));
+        -webkit-backdrop-filter: blur(var(--ios-blur));
+    }
+    .fl-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+        padding-right: 20px;
+    }
+    .fl-app-icon {
+        width: 22px;
+        height: 22px;
+        border-radius: 5px;
+        background-color: currentColor;
+        margin-right: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .fl-icon-svg {
+        color: white;
+        width: 14px;
+        height: 14px;
+    }
+    .fl-app-info {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        flex: 1;
+    }
+    .fl-app-name {
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    .fl-time {
+        font-size: 0.75rem;
+        color: var(--ios-text-secondary-light);
+        margin-left: 5px;
+        flex-shrink: 0;
+    }
+    .fl-content {
+        animation: iosExpand 0.3s forwards;
+        animation-delay: 0.1s;
+        overflow: hidden;
+    }
+    .fl-message {
+        font-size: 0.95rem;
+        line-height: 1.3;
+        margin: 0;
+        padding-right: 15px;
+    }
+    .fl-close {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: none;
+        background-color: rgba(0, 0, 0, 0.1);
+        color: var(--ios-text-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        line-height: 1;
+        opacity: 0.7;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        padding: 0;
+        &:hover, &:focus {
+            opacity: 1;
+        }
+    }
+    &.fl-success {
+        .fl-app-icon {
+            color: var(--ios-success);
+        }
+    }
+    &.fl-info {
+        .fl-app-icon {
+            color: var(--ios-info);
+        }
+    }
+    &.fl-warning {
+        .fl-app-icon {
+            color: var(--ios-warning);
+        }
+    }
+    &.fl-error {
+        .fl-app-icon {
+            color: var(--ios-error);
+        }
+    }
+    &.fl-rtl {
+        direction: rtl;
+        .fl-header {
+            padding-right: 0;
+            padding-left: 20px;
+        }
+        .fl-app-icon {
+            margin-right: 0;
+            margin-left: 8px;
+        }
+        .fl-time {
+            margin-left: 0;
+            margin-right: 5px;
+        }
+        .fl-message {
+            padding-right: 0;
+            padding-left: 15px;
+        }
+        .fl-close {
+            right: auto;
+            left: 12px;
+        }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+        .fl-content {
+            animation: none;
+            max-height: none;
+            opacity: 1;
+        }
+    }
+    @media screen and (max-width: 480px) {
+        width: 100%;
+    }
+}
+body.fl-dark .fl-ios,
+html.fl-dark .fl-ios,
+.fl-ios.fl-auto-dark {
+    .fl-ios-notification {
+        background-color: var(--ios-bg-dark);
+        color: var(--ios-text-dark);
+        box-shadow: var(--ios-shadow-dark);
+    }
+    .fl-time {
+        color: var(--ios-text-secondary-dark);
+    }
+    .fl-close {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: var(--ios-text-dark);
+    }
+}

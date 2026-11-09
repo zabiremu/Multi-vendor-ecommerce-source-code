@@ -2,8 +2,10 @@
 
 namespace PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
+use Composer\Pcre\Preg;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx\Namespaces;
 use PhpOffice\PhpSpreadsheet\Shared\File;
+use PhpOffice\PhpSpreadsheet\Shared\Metafile;
 use PhpOffice\PhpSpreadsheet\Shared\XMLWriter;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing as WorksheetDrawing;
@@ -19,7 +21,7 @@ class ContentTypes extends WriterPart
      *
      * @return string XML Output
      */
-    public function writeContentTypes(Spreadsheet $spreadsheet, $includeCharts = false)
+    public function writeContentTypes(Spreadsheet $spreadsheet, bool $includeCharts = false): string
     {
         // Create XML writer
         $objWriter = null;
@@ -98,6 +100,7 @@ class ContentTypes extends WriterPart
         }
 
         // Add worksheet relationship content types
+        /** @var mixed[][][][] */
         $unparsedLoadedData = $spreadsheet->getUnparsedLoadedData();
         $chart = 1;
         for ($i = 0; $i < $sheetCount; ++$i) {
@@ -114,7 +117,35 @@ class ContentTypes extends WriterPart
             //    If we have charts, then we need a chart relationship for every individual chart
             if ($chartCount > 0) {
                 for ($c = 0; $c < $chartCount; ++$c) {
-                    $this->writeOverrideContentType($objWriter, '/xl/charts/chart' . $chart++ . '.xml', 'application/vnd.openxmlformats-officedocument.drawingml.chart+xml');
+                    $chartObject = $spreadsheet->getSheet($i)->getChartCollection()[$c];
+
+                    if ($chartObject === null || $chartObject->getChartEx() === null) {
+                        $this->writeOverrideContentType(
+                            $objWriter,
+                            '/xl/charts/chart' . $chart++ . '.xml',
+                            'application/vnd.openxmlformats-officedocument.drawingml.chart+xml'
+                        );
+                    } else {
+                        $chartExIndex = $chart++;
+
+                        $this->writeOverrideContentType(
+                            $objWriter,
+                            '/xl/charts/chartEx' . $chartExIndex . '.xml',
+                            'application/vnd.ms-office.chartex+xml'
+                        );
+
+                        $this->writeOverrideContentType(
+                            $objWriter,
+                            '/xl/charts/style' . $chartExIndex . '.xml',
+                            'application/vnd.ms-office.chartstyle+xml'
+                        );
+
+                        $this->writeOverrideContentType(
+                            $objWriter,
+                            '/xl/charts/colors' . $chartExIndex . '.xml',
+                            'application/vnd.ms-office.chartcolorstyle+xml'
+                        );
+                    }
                 }
             }
         }
@@ -136,7 +167,14 @@ class ContentTypes extends WriterPart
             $drawing = $this->getParentWriter()->getDrawingHashTable()->getByIndex($i);
             if ($drawing instanceof WorksheetDrawing && $drawing->getPath() !== '') {
                 $extension = strtolower($drawing->getExtension());
-                if ($drawing->getIsUrl()) {
+                $metafileType = $drawing->getMetafileType();
+                if ($this->getParentWriter()->getMetafilePng($drawing) !== null) {
+                    // Windows Metafile written as PNG
+                    $extension = 'png';
+                    $mimeType = 'image/png';
+                } elseif ($metafileType !== null) {
+                    $mimeType = Metafile::getMimeType($metafileType);
+                } elseif ($drawing->getIsUrl()) {
                     $mimeType = image_type_to_mime_type($drawing->getType());
                 } else {
                     $mimeType = $this->getImageMimeType($drawing->getPath());
@@ -155,10 +193,45 @@ class ContentTypes extends WriterPart
                 $this->writeDefaultContentType($objWriter, $extension, $mimeType);
             }
         }
+
+        if ($spreadsheet->hasInCellDrawings()) {
+            $this->writeOverrideContentType($objWriter, '/xl/richData/richValueRel.xml', 'application/vnd.ms-excel.richvaluerel+xml');
+            $this->writeOverrideContentType($objWriter, '/xl/richData/rdrichvalue.xml', 'application/vnd.ms-excel.rdrichvalue+xml');
+            $this->writeOverrideContentType($objWriter, '/xl/richData/rdrichvaluestructure.xml', 'application/vnd.ms-excel.rdrichvaluestructure+xml');
+            $this->writeOverrideContentType($objWriter, '/xl/richData/rdRichValueTypes.xml', 'application/vnd.ms-excel.rdrichvaluetypes+xml');
+        }
+
+        // Add pass-through media content types
+        /** @var array<string, array<string, mixed>> $sheets */
+        $sheets = $unparsedLoadedData['sheets'] ?? [];
+        foreach ($sheets as $sheetData) {
+            if (($sheetData['drawingPassThroughEnabled'] ?? false) !== true) {
+                continue;
+            }
+            /** @var string[] $mediaFiles */
+            $mediaFiles = $sheetData['drawingMediaFiles'] ?? [];
+            foreach ($mediaFiles as $mediaPath) {
+                $extension = strtolower(pathinfo($mediaPath, PATHINFO_EXTENSION));
+                if ($extension !== '' && !isset($aMediaContentTypes[$extension])) {
+                    $mimeType = match ($extension) { // @phpstan-ignore match.unhandled (no default, don't care if it blows up because of that)
+                        'png' => 'image/png',
+                        'jpg', 'jpeg' => 'image/jpeg',
+                        'gif' => 'image/gif',
+                        'bmp' => 'image/bmp',
+                        'tif', 'tiff' => 'image/tiff',
+                        'svg' => 'image/svg+xml',
+                    };
+                    $aMediaContentTypes[$extension] = $mimeType;
+                    $this->writeDefaultContentType($objWriter, $extension, $mimeType);
+                }
+            }
+        }
+
         if ($spreadsheet->hasRibbonBinObjects()) {
             // Some additional objects in the ribbon ?
             // we need to write "Extension" but not already write for media content
-            $tabRibbonTypes = array_diff($spreadsheet->getRibbonBinObjects('types') ?? [], array_keys($aMediaContentTypes));
+            /** @var string[] */
+            $tabRibbonTypes = array_diff($spreadsheet->getRibbonBinObjects('types') ?? [], array_keys($aMediaContentTypes)); // @phpstan-ignore argument.type (getRibbonBinObjects might return mixed[], array_diff 1st arg needs array of castables to string)
             foreach ($tabRibbonTypes as $aRibbonType) {
                 $mimeType = 'image/.' . $aRibbonType; //we wrote $mimeType like customUI Editor
                 $this->writeDefaultContentType($objWriter, $aRibbonType, $mimeType);
@@ -168,10 +241,18 @@ class ContentTypes extends WriterPart
         for ($i = 0; $i < $sheetCount; ++$i) {
             if (count($spreadsheet->getSheet($i)->getHeaderFooter()->getImages()) > 0) {
                 foreach ($spreadsheet->getSheet($i)->getHeaderFooter()->getImages() as $image) {
-                    if ($image->getPath() !== '' && !isset($aMediaContentTypes[strtolower($image->getExtension())])) {
-                        $aMediaContentTypes[strtolower($image->getExtension())] = $this->getImageMimeType($image->getPath());
+                    $extension = strtolower(pathinfo($this->getParentWriter()->getDrawingMediaFilename($image), PATHINFO_EXTENSION));
+                    if ($image->getPath() !== '' && !isset($aMediaContentTypes[$extension])) {
+                        $metafileType = $image->getMetafileType();
+                        if ($this->getParentWriter()->getMetafilePng($image) !== null) {
+                            $aMediaContentTypes[$extension] = 'image/png';
+                        } elseif ($metafileType !== null) {
+                            $aMediaContentTypes[$extension] = Metafile::getMimeType($metafileType);
+                        } else {
+                            $aMediaContentTypes[$extension] = $this->getImageMimeType($image->getPath());
+                        }
 
-                        $this->writeDefaultContentType($objWriter, strtolower($image->getExtension()), $aMediaContentTypes[strtolower($image->getExtension())]);
+                        $this->writeDefaultContentType($objWriter, $extension, $aMediaContentTypes[$extension]);
                     }
                 }
             }
@@ -192,20 +273,40 @@ class ContentTypes extends WriterPart
                     }
                 }
             }
+
+            $bgImage = $spreadsheet->getSheet($i)->getBackgroundImage();
+            $mimeType = $spreadsheet->getSheet($i)->getBackgroundMime();
+            $extension = $spreadsheet->getSheet($i)->getBackgroundExtension();
+            if ($bgImage !== '' && !isset($aMediaContentTypes[$extension])) {
+                $this->writeDefaultContentType($objWriter, $extension, $mimeType);
+            }
         }
 
         // unparsed defaults
         if (isset($unparsedLoadedData['default_content_types'])) {
-            foreach ($unparsedLoadedData['default_content_types'] as $extName => $contentType) {
+            /** @var array<string, string> */
+            $unparsedDefault = $unparsedLoadedData['default_content_types'];
+            foreach ($unparsedDefault as $extName => $contentType) {
                 $this->writeDefaultContentType($objWriter, $extName, $contentType);
             }
         }
 
         // unparsed overrides
         if (isset($unparsedLoadedData['override_content_types'])) {
-            foreach ($unparsedLoadedData['override_content_types'] as $partName => $overrideType) {
+            /** @var array<string, string> */
+            $unparsedOverride = $unparsedLoadedData['override_content_types'];
+            foreach ($unparsedOverride as $partName => $overrideType) {
                 $this->writeOverrideContentType($objWriter, $partName, $overrideType);
             }
+        }
+
+        // Metadata needed for Dynamic Arrays
+        if ($this->getParentWriter()->useDynamicArrays() || $spreadsheet->hasInCellDrawings()) {
+            $this->writeOverrideContentType($objWriter, '/xl/metadata.xml', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheetMetadata+xml');
+        }
+
+        if ($spreadsheet->getUsesCheckboxStyle()) {
+            $this->writeOverrideContentType($objWriter, '/xl/featurePropertyBag/featurePropertyBag.xml', 'application/vnd.ms-excel.featurepropertybag+xml');
         }
 
         $objWriter->endElement();
@@ -214,6 +315,8 @@ class ContentTypes extends WriterPart
         return $objWriter->getData();
     }
 
+    private static int $three = 3; // phpstan silliness
+
     /**
      * Get image mime type.
      *
@@ -221,12 +324,15 @@ class ContentTypes extends WriterPart
      *
      * @return string Mime Type
      */
-    private function getImageMimeType($filename)
+    private function getImageMimeType(string $filename): string
     {
+        if (Preg::isMatch('~^data:(image/[^;]+);base64,~', $filename, $matches)) {
+            return $matches[1];
+        }
         if (File::fileExists($filename)) {
             $image = getimagesize($filename);
 
-            return image_type_to_mime_type((is_array($image) && count($image) >= 3) ? $image[2] : 0);
+            return image_type_to_mime_type((is_array($image) && count($image) >= self::$three) ? $image[2] : 0);
         }
 
         throw new WriterException("File $filename does not exist");
@@ -238,7 +344,7 @@ class ContentTypes extends WriterPart
      * @param string $partName Part name
      * @param string $contentType Content type
      */
-    private function writeDefaultContentType(XMLWriter $objWriter, $partName, $contentType): void
+    private function writeDefaultContentType(XMLWriter $objWriter, string $partName, string $contentType): void
     {
         if ($partName != '' && $contentType != '') {
             // Write content type
@@ -257,7 +363,7 @@ class ContentTypes extends WriterPart
      * @param string $partName Part name
      * @param string $contentType Content type
      */
-    private function writeOverrideContentType(XMLWriter $objWriter, $partName, $contentType): void
+    private function writeOverrideContentType(XMLWriter $objWriter, string $partName, string $contentType): void
     {
         if ($partName != '' && $contentType != '') {
             // Write content type

@@ -1,0 +1,145 @@
+.fl-aurora {
+    --aurora-bg-light: rgba(255, 255, 255);
+    --aurora-bg-dark: rgba(20, 20, 28);
+    --aurora-text-light: #1e293b;
+    --aurora-text-dark: #f8fafc;
+    --aurora-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    --aurora-shadow-dark: 0 10px 30px rgba(0, 0, 0, 0.16);
+    --aurora-border-radius: 4px;
+    --aurora-blur: 15px;
+    --aurora-success-gradient: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.2) 100%);
+    --aurora-info-gradient: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.2) 100%);
+    --aurora-warning-gradient: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.2) 100%);
+    --aurora-error-gradient: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.2) 100%);
+    --aurora-success: #10b981;
+    --aurora-info: #3b82f6;
+    --aurora-warning: #f59e0b;
+    --aurora-error: #ef4444;
+}
+@keyframes auroraFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+.fl-aurora {
+    background-color: var(--aurora-bg-light);
+    color: var(--aurora-text-light);
+    border-radius: var(--aurora-border-radius) var(--aurora-border-radius) 0 0;
+    box-shadow: var(--aurora-shadow);
+    padding: 16px 18px;
+    margin: 10px 0;
+    position: relative;
+    animation: auroraFadeIn 0.35s cubic-bezier(0.21, 1.02, 0.73, 1);
+    font-family: var(--fl-font), sans-serif;
+    overflow: hidden;
+    will-change: transform, opacity;
+    backdrop-filter: blur(var(--aurora-blur));
+    -webkit-backdrop-filter: blur(var(--aurora-blur));
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        opacity: 0.8;
+        border-radius: inherit;
+    }
+    .fl-content {
+        display: flex;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+    }
+    .fl-message {
+        flex: 1;
+        font-size: 0.9375rem;
+        line-height: 1.5;
+        font-weight: 500;
+        margin-right: 10px;
+    }
+    .fl-close {
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.05);
+        border: none;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: all 0.2s ease;
+        color: inherit;
+        &:hover, &:focus {
+            opacity: 1;
+            background: rgba(0, 0, 0, 0.1);
+        }
+    }
+    .fl-progress-bar {
+        position: absolute;
+        left: 2px;
+        right: 2px;
+        bottom: 2px;
+        height: 3px;
+        overflow: hidden;
+        border-radius: 6px;
+        opacity: 0.7;
+        z-index: 1;
+    }
+    .fl-progress {
+        height: 100%;
+        width: 100%;
+    }
+    &.fl-success {
+        &::before { background: var(--aurora-success-gradient); }
+        .fl-progress { background-color: var(--aurora-success); }
+    }
+    &.fl-info {
+        &::before { background: var(--aurora-info-gradient); }
+        .fl-progress { background-color: var(--aurora-info); }
+    }
+    &.fl-warning {
+        &::before { background: var(--aurora-warning-gradient); }
+        .fl-progress { background-color: var(--aurora-warning); }
+    }
+    &.fl-error {
+        &::before { background: var(--aurora-error-gradient); }
+        .fl-progress { background-color: var(--aurora-error); }
+    }
+    &.fl-rtl {
+        direction: rtl;
+        .fl-message {
+            margin-right: 0;
+            margin-left: 10px;
+        }
+        .fl-progress {
+            transform-origin: right center;
+        }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+}
+body.fl-dark .fl-aurora,
+html.fl-dark .fl-aurora,
+.fl-aurora.fl-auto-dark {
+    background-color: var(--aurora-bg-dark);
+    color: var(--aurora-text-dark);
+    box-shadow: var(--aurora-shadow-dark);
+    .fl-close {
+        background: rgba(255, 255, 255, 0.1);
+        &:hover, &:focus {
+            background: rgba(255, 255, 255, 0.15);
+        }
+    }
+    &.fl-success::before { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.25) 100%); }
+    &.fl-info::before { background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.25) 100%); }
+    &.fl-warning::before { background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.25) 100%); }
+    &.fl-error::before { background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.25) 100%); }
+}

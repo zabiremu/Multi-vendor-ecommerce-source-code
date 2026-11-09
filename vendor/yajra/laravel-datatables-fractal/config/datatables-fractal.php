@@ -1,5 +1,7 @@
 <?php
 
+use League\Fractal\Serializer\DataArraySerializer;
+
 return [
     /*
      * Request key name to parse includes on fractal.
@@ -9,5 +11,5 @@ return [
     /*
      * Default fractal serializer.
      */
-    'serializer' => League\Fractal\Serializer\DataArraySerializer::class,
+    'serializer' => DataArraySerializer::class,
 ];

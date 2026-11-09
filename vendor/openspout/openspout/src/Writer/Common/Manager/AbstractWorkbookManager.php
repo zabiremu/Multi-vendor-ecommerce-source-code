@@ -14,7 +14,6 @@ use OpenSpout\Writer\Common\Entity\Workbook;
 use OpenSpout\Writer\Common\Entity\Worksheet;
 use OpenSpout\Writer\Common\Helper\FileSystemWithRootFolderHelperInterface;
 use OpenSpout\Writer\Common\Manager\Style\StyleManagerInterface;
-use OpenSpout\Writer\Common\Manager\Style\StyleMerger;
 use OpenSpout\Writer\Exception\SheetNotFoundException;
 
 /**
@@ -35,9 +34,6 @@ abstract class AbstractWorkbookManager implements WorkbookManagerInterface
     /** @var Workbook The workbook to manage */
     private readonly Workbook $workbook;
 
-    /** @var StyleMerger Helper to merge styles */
-    private readonly StyleMerger $styleMerger;
-
     /** @var Worksheet The worksheet where data will be written to */
     private Worksheet $currentWorksheet;
 
@@ -46,14 +42,12 @@ abstract class AbstractWorkbookManager implements WorkbookManagerInterface
         AbstractOptions $options,
         WorksheetManagerInterface $worksheetManager,
         StyleManagerInterface $styleManager,
-        StyleMerger $styleMerger,
         FileSystemWithRootFolderHelperInterface $fileSystemHelper
     ) {
         $this->workbook = $workbook;
         $this->options = $options;
         $this->worksheetManager = $worksheetManager;
         $this->styleManager = $styleManager;
-        $this->styleMerger = $styleMerger;
         $this->fileSystemHelper = $fileSystemHelper;
     }
 
@@ -101,7 +95,7 @@ abstract class AbstractWorkbookManager implements WorkbookManagerInterface
     {
         $worksheet = $this->getWorksheetFromExternalSheet($sheet);
         if (null !== $worksheet) {
-            $this->currentWorksheet = $worksheet;
+            $this->setCurrentWorksheet($worksheet);
         } else {
             throw new SheetNotFoundException('The given sheet does not exist in the workbook.');
         }
@@ -214,6 +208,10 @@ abstract class AbstractWorkbookManager implements WorkbookManagerInterface
 
     private function setCurrentWorksheet(Worksheet $worksheet): void
     {
+        if (isset($this->currentWorksheet) && $this->currentWorksheet !== $worksheet) {
+            $this->worksheetManager->suspendSheet($this->currentWorksheet);
+        }
+        $this->worksheetManager->resumeSheet($worksheet);
         $this->currentWorksheet = $worksheet;
     }
 
@@ -258,22 +256,15 @@ abstract class AbstractWorkbookManager implements WorkbookManagerInterface
      */
     private function addRowToWorksheet(Worksheet $worksheet, Row $row): void
     {
-        $this->applyDefaultRowStyle($row);
         $this->worksheetManager->addRow($worksheet, $row);
 
         // update max num columns for the worksheet
         $currentMaxNumColumns = $worksheet->getMaxNumColumns();
         $cellsCount = $row->getNumCells();
         $worksheet->setMaxNumColumns(max($currentMaxNumColumns, $cellsCount));
-    }
 
-    private function applyDefaultRowStyle(Row $row): void
-    {
-        $mergedStyle = $this->styleMerger->merge(
-            $row->getStyle(),
-            $this->options->DEFAULT_ROW_STYLE
-        );
-        $row->setStyle($mergedStyle);
+        // update max row outline level for the worksheet
+        $worksheet->setMaxRowOutlineLevel(max($worksheet->getMaxRowOutlineLevel(), $row->outlineLevel));
     }
 
     /**

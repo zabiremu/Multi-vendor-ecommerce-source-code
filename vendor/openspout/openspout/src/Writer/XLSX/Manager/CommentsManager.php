@@ -22,7 +22,7 @@ use OpenSpout\Writer\Common\Helper\CellHelper;
  */
 final class CommentsManager
 {
-    public const COMMENTS_XML_FILE_HEADER = <<<'EOD'
+    public const string COMMENTS_XML_FILE_HEADER = <<<'EOD'
         <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
         <comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
             <authors><author>Unknown</author></authors>
@@ -34,7 +34,7 @@ final class CommentsManager
         </comments>
         EOD;
 
-    public const DRAWINGS_VML_FILE_HEADER = <<<'EOD'
+    public const string DRAWINGS_VML_FILE_HEADER = <<<'EOD'
         <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
         <xml xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
           <o:shapelayout v:ext="edit">
@@ -46,7 +46,7 @@ final class CommentsManager
           </v:shapetype>
         EOD;
 
-    public const DRAWINGS_VML_FILE_FOOTER = <<<'EOD'
+    public const string DRAWINGS_VML_FILE_FOOTER = <<<'EOD'
         </xml>
         EOD;
 
@@ -105,20 +105,74 @@ final class CommentsManager
     {
         $sheetId = $sheet->getId();
 
+        // suspended sheets (closeTempCommentFiles) have no active pointer
+        // but file on disk still needs footer. reopen in append mode, write footer, close.
+        if (!isset($this->commentsFilePointers[$sheetId])) {
+            $this->reopenTempCommentFiles($sheet);
+        }
+
         $commentFp = $this->commentsFilePointers[$sheetId];
         $drawingFp = $this->drawingFilePointers[$sheetId];
 
-        fwrite($commentFp, self::COMMENTS_XML_FILE_FOOTER);
-        fwrite($drawingFp, self::DRAWINGS_VML_FILE_FOOTER);
+        // guards against TypeError during PHP shutdown: the runtime may free
+        // file handles before destructors run, leaving these pointers invalid
+        if (\is_resource($commentFp)) {
+            fwrite($commentFp, self::COMMENTS_XML_FILE_FOOTER);
+            fclose($commentFp);
+        }
 
-        fclose($commentFp);
-        fclose($drawingFp);
+        if (\is_resource($drawingFp)) {
+            fwrite($drawingFp, self::DRAWINGS_VML_FILE_FOOTER);
+            fclose($drawingFp);
+        }
+
+        unset($this->commentsFilePointers[$sheetId], $this->drawingFilePointers[$sheetId]);
+    }
+
+    /**
+     * Close the two comment-files for the given worksheet without writing footers.
+     * Used when switching away from a sheet to free file handles.
+     */
+    public function closeTempCommentFiles(Worksheet $sheet): void
+    {
+        $sheetId = $sheet->getId();
+
+        if (!isset($this->commentsFilePointers[$sheetId])) {
+            return;
+        }
+
+        fclose($this->commentsFilePointers[$sheetId]);
+        fclose($this->drawingFilePointers[$sheetId]);
+
+        unset($this->commentsFilePointers[$sheetId], $this->drawingFilePointers[$sheetId]);
+    }
+
+    /**
+     * Reopen the two comment-files for the given worksheet in append mode.
+     * Used when switching back to a previously closed sheet.
+     */
+    public function reopenTempCommentFiles(Worksheet $sheet): void
+    {
+        $sheetId = $sheet->getId();
+
+        // already open, avoid leaking existing handles
+        if (isset($this->commentsFilePointers[$sheetId])) {
+            return;
+        }
+
+        $commentFp = fopen($this->getCommentsFilePath($sheet), 'a');
+        \assert(false !== $commentFp);
+        $drawingFp = fopen($this->getDrawingFilePath($sheet), 'a');
+        \assert(false !== $drawingFp);
+
+        $this->commentsFilePointers[$sheetId] = $commentFp;
+        $this->drawingFilePointers[$sheetId] = $drawingFp;
     }
 
     public function addComments(Worksheet $worksheet, Row $row): void
     {
         $rowIndexZeroBased = 0 + $worksheet->getLastWrittenRowIndex();
-        foreach ($row->getCells() as $columnIndexZeroBased => $cell) {
+        foreach ($row->cells as $columnIndexZeroBased => $cell) {
             if (null === $cell->comment) {
                 continue;
             }
@@ -159,7 +213,7 @@ final class CommentsManager
         $columnLetters = CellHelper::getColumnLettersFromColumnIndex($columnIndexZeroBased);
 
         $commentxml = '<comment ref="'.$columnLetters.$rowIndexOneBased.'" authorId="0"><text>';
-        foreach ($comment->getTextRuns() as $line) {
+        foreach ($comment->textRuns as $line) {
             $commentxml .= '<r>';
             $commentxml .= '  <rPr>';
             if ($line->bold) {

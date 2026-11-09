@@ -1,0 +1,181 @@
+.fl-wrapper {
+    position: fixed;
+    z-index: 1000;
+    width: 24em;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    pointer-events: none;
+
+    .fl-container {
+        pointer-events: auto;
+        transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+                   opacity 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        opacity: 0;
+        border-radius: var(--fl-border-radius, 4px);
+
+        &.fl-show {
+            opacity: 1;
+            transform: translate(0, 0) scale(1) !important;
+        }
+    }
+
+    &.fl-stacked .fl-container:not(:last-child) {
+        margin-bottom: 0.5em;
+    }
+
+    &[data-position^="top-"] {
+        top: 0.75em;
+    }
+
+    &[data-position^="bottom-"] {
+        bottom: 0.75em;
+    }
+
+    &[data-position^="center-"] {
+        top: 50%;
+    }
+
+    &[data-position$="-right"] {
+        right: 0.75em;
+    }
+
+    &[data-position$="-left"] {
+        left: 0.75em;
+    }
+
+    &[data-position$="-center"] {
+        left: 50%;
+    }
+
+    &[data-position="center-left"] {
+        transform: translateY(-50%);
+
+        .fl-container {
+            transform: translateX(-110%);
+        }
+    }
+
+    &[data-position="center-right"] {
+        transform: translateY(-50%);
+
+        .fl-container {
+            transform: translateX(110%);
+        }
+    }
+
+    &[data-position="center-center"] {
+        transform: translate(-50%, -50%);
+
+        .fl-container {
+            transform: translate(0, 0) scale(0.5);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1),
+                       opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+    }
+
+    &[data-position="top-center"],
+    &[data-position="bottom-center"] {
+        transform: translateX(-50%);
+    }
+
+    &[data-position="top-center"] .fl-container {
+        transform: translateY(-150%);
+    }
+
+    &[data-position="bottom-center"] .fl-container {
+        transform: translateY(150%);
+    }
+
+    &[data-position="top-right"] .fl-container,
+    &[data-position="bottom-right"] .fl-container {
+        transform: translateX(110%);
+    }
+
+    &[data-position="top-left"] .fl-container,
+    &[data-position="bottom-left"] .fl-container {
+        transform: translateX(-110%);
+    }
+
+    @media screen and (max-width: 768px) {
+        width: 85%;
+        left: 7.5%;
+        right: 7.5%;
+
+        &[data-position$="-right"],
+        &[data-position$="-left"],
+        &[data-position$="-center"] {
+            left: 50%;
+            right: auto;
+        }
+
+        &[data-position^="top-"] {
+            transform: translateX(-50%);
+            top: 0.75em;
+        }
+
+        &[data-position^="bottom-"] {
+            transform: translateX(-50%);
+            bottom: 0.75em;
+        }
+
+        &[data-position^="center-"] {
+            transform: translate(-50%, -50%);
+            top: 50%;
+        }
+    }
+
+    @media screen and (max-width: 480px) {
+        width: 90%;
+        left: 5%;
+        right: 5%;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        &.fl-auto-dark .fl-container {
+            box-shadow: var(--fl-shadow-dark, 0 4px 12px rgba(0, 0, 0, 0.35));
+        }
+    }
+}
+
+.fl-wrapper .fl-container.fl-dismissing {
+    opacity: 0;
+    transition: all 0.3s ease-out;
+
+    &[data-position="top-right"],
+    &[data-position="bottom-right"] {
+        transform: translateX(110%);
+    }
+
+    &[data-position="top-left"],
+    &[data-position="bottom-left"] {
+        transform: translateX(-110%);
+    }
+
+    &[data-position="top-center"] {
+        transform: translateY(-150%);
+    }
+
+    &[data-position="center-center"] {
+        transform: scale(0.5);
+        transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+    }
+
+    &[data-position="bottom-center"] {
+        transform: translateY(150%);
+    }
+
+    &[data-position="center-left"] {
+        transform: translateX(-110%);
+    }
+
+    &[data-position="center-right"] {
+        transform: translateX(110%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fl-wrapper,
+    .fl-wrapper .fl-container {
+        transition: none !important;
+    }
+}

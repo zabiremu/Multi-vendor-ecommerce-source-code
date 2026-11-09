@@ -1,89 +1,92 @@
 <?php
 
-/*
- * This file is part of the PHPFlasher package.
- * (c) Younes KHOUBZA <younes.khoubza@gmail.com>
- */
+declare(strict_types=1);
 
 namespace Flasher\Prime\EventDispatcher\EventListener;
 
 use Flasher\Prime\EventDispatcher\Event\PresentationEvent;
+use Flasher\Prime\Notification\Envelope;
 use Flasher\Prime\Stamp\PresetStamp;
 use Flasher\Prime\Stamp\TranslationStamp;
 use Flasher\Prime\Translation\EchoTranslator;
 use Flasher\Prime\Translation\Language;
 use Flasher\Prime\Translation\TranslatorInterface;
 
-final class TranslationListener implements EventSubscriberInterface
+final readonly class TranslationListener implements EventListenerInterface
 {
-    /**
-     * @var TranslatorInterface
-     */
-    private $translator;
+    private TranslatorInterface $translator;
 
-    /**
-     * @var bool
-     */
-    private $autoTranslate;
-
-    /**
-     * @param bool $autoTranslate
-     */
-    public function __construct(TranslatorInterface $translator = null, $autoTranslate = true)
+    public function __construct(?TranslatorInterface $translator = null)
     {
         $this->translator = $translator ?: new EchoTranslator();
-        $this->autoTranslate = $autoTranslate;
     }
 
-    /**
-     * @return void
-     */
-    public function __invoke(PresentationEvent $event)
+    public function __invoke(PresentationEvent $event): void
     {
         foreach ($event->getEnvelopes() as $envelope) {
-            $stamp = $envelope->get('Flasher\Prime\Stamp\TranslationStamp');
-            if (!$stamp instanceof TranslationStamp && !$this->autoTranslate) {
-                continue;
-            }
+            $this->translateEnvelope($envelope);
+        }
+    }
 
-            $locale = $stamp instanceof TranslationStamp && $stamp->getLocale()
-                ? $stamp->getLocale()
-                : $this->translator->getLocale();
+    public function getSubscribedEvents(): string
+    {
+        return PresentationEvent::class;
+    }
 
-            $parameters = $stamp instanceof TranslationStamp && $stamp->getParameters()
-                ? $stamp->getParameters()
-                : array();
+    private function translateEnvelope(Envelope $envelope): void
+    {
+        $translationStamp = $envelope->get(TranslationStamp::class);
 
-            $preset = $envelope->get('Flasher\Prime\Stamp\PresetStamp');
-            if ($preset instanceof PresetStamp) {
-                foreach ($preset->getParameters() as $key => $value) {
-                    $parameters[$key] = $this->translator->translate($value, $parameters, $locale); // @phpstan-ignore-line
-                }
-            }
+        $locale = $translationStamp?->getLocale() ?: $this->translator->getLocale();
 
-            $title = $envelope->getTitle() ?: $envelope->getType();
-            if (null !== $title) {
-                $title = $this->translator->translate($title, $parameters, $locale);
-                $envelope->setTitle($title);
-            }
+        $parameters = $translationStamp?->getParameters() ?: [];
+        $parameters = array_merge($parameters, $this->getParameters($envelope, $locale));
 
-            $message = $envelope->getMessage();
-            if (null !== $message) {
-                $message = $this->translator->translate($message, $parameters, $locale);
-                $envelope->setMessage($message);
-            }
+        $this->applyTranslations($envelope, $locale, $parameters);
 
-            if (Language::isRTL($locale)) {
-                $envelope->setOption('rtl', true);
-            }
+        if (Language::isRTL($locale)) {
+            $envelope->setOption('rtl', true);
         }
     }
 
     /**
-     * {@inheritdoc}
+     * @return array<string, mixed>
+     *
+     * @throws \InvalidArgumentException
      */
-    public static function getSubscribedEvents()
+    private function getParameters(Envelope $envelope, string $locale): array
     {
-        return 'Flasher\Prime\EventDispatcher\Event\PresentationEvent';
+        $preset = $envelope->get(PresetStamp::class);
+        if (!$preset instanceof PresetStamp) {
+            return [];
+        }
+
+        $parameters = [];
+
+        foreach ($preset->getParameters() as $key => $value) {
+            if (!\is_string($value)) {
+                throw new \InvalidArgumentException(\sprintf('Value must be "string", got "%s".', get_debug_type($value)));
+            }
+
+            $parameters[$key] = $this->translator->translate($value, $parameters, $locale);
+        }
+
+        return $parameters;
+    }
+
+    /**
+     * @param array<string, mixed> $parameters
+     */
+    private function applyTranslations(Envelope $envelope, string $locale, array $parameters): void
+    {
+        $title = $envelope->getTitle() ?: $envelope->getType();
+        if ('' !== $title) {
+            $envelope->setTitle($this->translator->translate($title, $parameters, $locale));
+        }
+
+        $message = $envelope->getMessage();
+        if ('' !== $message) {
+            $envelope->setMessage($this->translator->translate($message, $parameters, $locale));
+        }
     }
 }

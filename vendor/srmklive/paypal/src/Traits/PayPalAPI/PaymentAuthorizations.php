@@ -2,16 +2,19 @@
 
 namespace Srmklive\PayPal\Traits\PayPalAPI;
 
+use Srmklive\PayPal\Services\Amount;
+use Psr\Http\Message\StreamInterface;
+
 trait PaymentAuthorizations
 {
     /**
      * Show details for authorized payment.
      *
-     * @param string $authorization_id
+     *
+     *
+     * @return array<string, mixed>|StreamInterface|string
      *
      * @throws \Throwable
-     *
-     * @return array|\Psr\Http\Message\StreamInterface|string
      *
      * @see https://developer.paypal.com/docs/api/payments/v2/#authorizations_get
      */
@@ -27,30 +30,29 @@ trait PaymentAuthorizations
     /**
      * Capture an authorized payment.
      *
-     * @param string $authorization_id
-     * @param string $invoice_id
-     * @param float  $amount
-     * @param string $note
+     * Empty $invoice_id / $note values are omitted (PayPal rejects empty strings).
+     *
+     * @param bool $final_capture Close the authorization after this capture. Pass false
+     *                            to capture further amounts against it later.
+     *
+     * @return array<string, mixed>|StreamInterface|string
      *
      * @throws \Throwable
      *
-     * @return array|\Psr\Http\Message\StreamInterface|string
-     *
      * @see https://developer.paypal.com/docs/api/payments/v2/#authorizations_capture
      */
-    public function captureAuthorizedPayment(string $authorization_id, string $invoice_id, float $amount, string $note)
+    public function captureAuthorizedPayment(string $authorization_id, string $invoice_id, float $amount, string $note, bool $final_capture = true)
     {
         $this->apiEndPoint = "v2/payments/authorizations/{$authorization_id}/capture";
 
-        $this->options['json'] = [
+        $this->options['json'] = array_filter([
             'amount' => [
-                'value'         => $amount,
+                'value' => Amount::format($amount, $this->currency),
                 'currency_code' => $this->currency,
             ],
-            'invoice_id'    => $invoice_id,
+            'invoice_id' => $invoice_id,
             'note_to_payer' => $note,
-            'final_capture' => true,
-        ];
+        ], fn ($value) => $value !== '') + ['final_capture' => $final_capture];
 
         $this->verb = 'post';
 
@@ -60,12 +62,11 @@ trait PaymentAuthorizations
     /**
      * Reauthorize an authorized payment.
      *
-     * @param string $authorization_id
-     * @param float  $amount
+     *
+     *
+     * @return array<string, mixed>|StreamInterface|string
      *
      * @throws \Throwable
-     *
-     * @return array|\Psr\Http\Message\StreamInterface|string
      *
      * @see https://developer.paypal.com/docs/api/payments/v2/#authorizations_reauthorize
      */
@@ -75,7 +76,7 @@ trait PaymentAuthorizations
 
         $this->options['json'] = [
             'amount' => [
-                'value'         => $amount,
+                'value' => Amount::format($amount, $this->currency),
                 'currency_code' => $this->currency,
             ],
         ];
@@ -88,11 +89,11 @@ trait PaymentAuthorizations
     /**
      * Void an authorized payment.
      *
-     * @param string $authorization_id
+     *
+     *
+     * @return array<string, mixed>|StreamInterface|string
      *
      * @throws \Throwable
-     *
-     * @return array|\Psr\Http\Message\StreamInterface|string
      *
      * @see https://developer.paypal.com/docs/api/payments/v2/#authorizations_void
      */

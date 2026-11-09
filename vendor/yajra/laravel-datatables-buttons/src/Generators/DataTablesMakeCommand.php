@@ -3,6 +3,7 @@
 namespace Yajra\DataTables\Generators;
 
 use Illuminate\Console\GeneratorCommand;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -61,41 +62,36 @@ class DataTablesMakeCommand extends GeneratorCommand
      * Build the class with the given name.
      *
      * @param  string  $name
-     * @return string
      *
-     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
+     * @throws FileNotFoundException
      */
     protected function buildClass($name): string
     {
         $stub = parent::buildClass($name);
 
         $this->replaceModelImport($stub)
-             ->replaceModel($stub)
-             ->replaceBuilder($stub)
-             ->replaceColumns($stub)
-             ->replaceButtons($stub)
-             ->replaceDOM($stub)
-             ->replaceTableId($stub)
-             ->replaceAction($stub)
-             ->replaceFilename($stub);
+            ->replaceModel($stub)
+            ->replaceBuilder($stub)
+            ->replaceColumns($stub)
+            ->replaceButtons($stub)
+            ->replaceDOM($stub)
+            ->replaceTableId($stub)
+            ->replaceAction($stub)
+            ->replaceFilename($stub);
 
         return $stub;
     }
 
     /**
      * Get DataTable class base name without the suffix.
-     *
-     * @return string
      */
     protected function getDataTableBaseName(): string
     {
-        return (string) preg_replace('#datatable$#i', '', $this->getNameInput());
+        return (string) preg_replace('#datatable$#i', '', (string) $this->getNameInput());
     }
 
     /**
      * Prepare model name from input.
-     *
-     * @return string
      */
     protected function prepareModelName(): string
     {
@@ -105,7 +101,6 @@ class DataTablesMakeCommand extends GeneratorCommand
     /**
      * Replace the filename.
      *
-     * @param  string  $stub
      * @return $this
      */
     protected function replaceFilename(string &$stub): static
@@ -117,9 +112,6 @@ class DataTablesMakeCommand extends GeneratorCommand
 
     /**
      * Replace the action.
-     *
-     * @param  string  $stub
-     * @return static
      */
     protected function replaceAction(string &$stub): static
     {
@@ -130,8 +122,6 @@ class DataTablesMakeCommand extends GeneratorCommand
 
     /**
      * Set the action view to be used.
-     *
-     * @return string
      */
     protected function getAction(): string
     {
@@ -148,7 +138,6 @@ class DataTablesMakeCommand extends GeneratorCommand
     /**
      * Replace columns.
      *
-     * @param  string  $stub
      * @return $this
      */
     protected function replaceTableId(string &$stub): static
@@ -161,7 +150,6 @@ class DataTablesMakeCommand extends GeneratorCommand
     /**
      * Replace dom.
      *
-     * @param  string  $stub
      * @return $this
      */
     protected function replaceDOM(string &$stub): static
@@ -177,7 +165,6 @@ class DataTablesMakeCommand extends GeneratorCommand
     /**
      * Replace buttons.
      *
-     * @param  string  $stub
      * @return $this
      */
     protected function replaceButtons(string &$stub): static
@@ -189,8 +176,6 @@ class DataTablesMakeCommand extends GeneratorCommand
 
     /**
      * Get the columns to be used.
-     *
-     * @return string
      */
     protected function getButtons(): string
     {
@@ -209,12 +194,8 @@ class DataTablesMakeCommand extends GeneratorCommand
 
     /**
      * Parse array from definition.
-     *
-     * @param  string  $definition
-     * @param  int  $indentation
-     * @return string
      */
-    protected function parseButtons(string $definition, int $indentation = 24): string
+    protected function parseButtons(string $definition, int $indentation = 12): string
     {
         $columns = explode(',', $definition);
         $stub = '';
@@ -239,7 +220,6 @@ class DataTablesMakeCommand extends GeneratorCommand
     /**
      * Replace columns.
      *
-     * @param  string  $stub
      * @return $this
      */
     protected function replaceColumns(string &$stub): static
@@ -251,8 +231,6 @@ class DataTablesMakeCommand extends GeneratorCommand
 
     /**
      * Get the columns to be used.
-     *
-     * @return string
      */
     protected function getColumns(): string
     {
@@ -278,10 +256,6 @@ class DataTablesMakeCommand extends GeneratorCommand
 
     /**
      * Parse array from definition.
-     *
-     * @param  array|string  $definition
-     * @param  int  $indentation
-     * @return string
      */
     protected function parseColumns(array|string $definition, int $indentation = 12): string
     {
@@ -302,7 +276,7 @@ class DataTablesMakeCommand extends GeneratorCommand
      * Replace builder name.
      *
      * @param  string  $stub
-     * @return \Yajra\DataTables\Generators\DataTablesMakeCommand
+     * @return DataTablesMakeCommand
      */
     protected function replaceBuilder(&$stub)
     {
@@ -338,14 +312,13 @@ class DataTablesMakeCommand extends GeneratorCommand
             $name = preg_replace('#datatable$#i', 'DataTable', $name);
         }
 
-        return $this->getDefaultNamespace(trim($rootNamespace, '\\')).'\\'.$name;
+        return $this->getDefaultNamespace(trim((string) $rootNamespace, '\\')).'\\'.$name;
     }
 
     /**
      * Get the default namespace for the class.
      *
      * @param  string  $rootNamespace
-     * @return string
      */
     protected function getDefaultNamespace($rootNamespace): string
     {
@@ -354,9 +327,6 @@ class DataTablesMakeCommand extends GeneratorCommand
 
     /**
      * Replace model name.
-     *
-     * @param  string  $stub
-     * @return static
      */
     protected function replaceModel(string &$stub): static
     {
@@ -369,16 +339,12 @@ class DataTablesMakeCommand extends GeneratorCommand
 
     /**
      * Get model name to use.
-     *
-     * @return string
      */
     protected function getModel(): string
     {
         /** @var string $modelFromOption */
         $modelFromOption = $this->option('model');
-        $modelNamespaceFromOption = $this->option('model-namespace')
-            ? $this->option('model-namespace')
-            : config('datatables-buttons.namespace.model');
+        $modelNamespaceFromOption = $this->option('model-namespace') ?: config('datatables-buttons.namespace.model');
 
         $name = $modelFromOption ?: $this->prepareModelName();
         $modelNamespace = $modelNamespaceFromOption ?: $this->laravel->getNamespace();
@@ -393,7 +359,6 @@ class DataTablesMakeCommand extends GeneratorCommand
     /**
      * Replace model import.
      *
-     * @param  string  $stub
      * @return $this
      */
     protected function replaceModelImport(string &$stub): static
@@ -405,8 +370,6 @@ class DataTablesMakeCommand extends GeneratorCommand
 
     /**
      * Get the stub file for the generator.
-     *
-     * @return string
      */
     protected function getStub(): string
     {

@@ -1,5 +1,11 @@
 <?php
 
+use Yajra\DataTables\ApiResourceDataTable;
+use Yajra\DataTables\CollectionDataTable;
+use Yajra\DataTables\EloquentDataTable;
+use Yajra\DataTables\PaginatorDataTable;
+use Yajra\DataTables\QueryDataTable;
+
 return [
     /*
      * DataTables search options.
@@ -41,14 +47,22 @@ return [
     'index_column' => 'DT_RowIndex',
 
     /*
+     * Maximum number of records that can be requested per page.
+     * A request asking for more, or for all the records using a length of -1,
+     * is capped to this value. Set to null to allow any length.
+     */
+    'max_length' => null,
+
+    /*
      * List of available builders for DataTables.
-     * This is where you can register your custom dataTables builder.
+     * This is where you can register your custom DataTables builder.
      */
     'engines' => [
-        'eloquent' => Yajra\DataTables\EloquentDataTable::class,
-        'query' => Yajra\DataTables\QueryDataTable::class,
-        'collection' => Yajra\DataTables\CollectionDataTable::class,
-        'resource' => Yajra\DataTables\ApiResourceDataTable::class,
+        'eloquent' => EloquentDataTable::class,
+        'query' => QueryDataTable::class,
+        'collection' => CollectionDataTable::class,
+        'paginator' => PaginatorDataTable::class,
+        'resource' => ApiResourceDataTable::class,
     ],
 
     /*
@@ -57,10 +71,11 @@ return [
      * Note, only change this if you know what you are doing!
      */
     'builders' => [
-        //Illuminate\Database\Eloquent\Relations\Relation::class => 'eloquent',
-        //Illuminate\Database\Eloquent\Builder::class            => 'eloquent',
-        //Illuminate\Database\Query\Builder::class               => 'query',
-        //Illuminate\Support\Collection::class                   => 'collection',
+        // Illuminate\Database\Eloquent\Relations\Relation::class => 'eloquent',
+        // Illuminate\Database\Eloquent\Builder::class            => 'eloquent',
+        // Illuminate\Database\Query\Builder::class               => 'query',
+        // Illuminate\Support\Collection::class                   => 'collection',
+        // Illuminate\Pagination\LengthAwarePaginator::class      => 'paginator',
     ],
 
     /*
@@ -79,7 +94,7 @@ return [
     'error' => env('DATATABLES_ERROR', null),
 
     /*
-     * Default columns definition of dataTable utility functions.
+     * Default columns definition of DataTable utility functions.
      */
     'columns' => [
         /*
@@ -105,7 +120,7 @@ return [
         'blacklist' => ['password', 'remember_token'],
 
         /*
-         * List of columns that are only allowed fo search/sort.
+         * List of columns that are only allowed for search/sort.
          * If set to *, all columns are allowed.
          */
         'whitelist' => '*',

@@ -1,42 +1,51 @@
-# Laravel DataTables Buttons Plugin CHANGELOG.
+# [13.3.0](https://github.com/yajra/laravel-datatables-buttons/compare/v13.2.1...v13.3.0) (2026-10-24)
 
-## v10.0.9 - 2024-02-27
 
-- fix: Update composer.json to use Larastan org #184
+### Features
 
-## v10.0.8 - 2023-11-15
+* support DataTables 3 ([859cf6c](https://github.com/yajra/laravel-datatables-buttons/commit/859cf6c4dddad0d5c81e80a396e1eb2854bcd5c0))
 
-- fix: unnecessary exception thrown #183
+## [13.2.1](https://github.com/yajra/laravel-datatables-buttons/compare/v13.2.0...v13.2.1) (2026-07-21)
 
-## v10.0.7 - 2023-07-31
 
-- fix: use callback function if exportRender method is set #177
+### Bug Fixes
 
-## v10.0.6 - 2023-02-28
+* **html:** preserve make argument compatibility ([0c5f1ae](https://github.com/yajra/laravel-datatables-buttons/commit/0c5f1aefd16485768101dde99d85480b6dd62b8b))
+* **html:** resolve make arguments through container ([08f9aa5](https://github.com/yajra/laravel-datatables-buttons/commit/08f9aa5f4f2bd21447d59007630a68edba6e402b))
 
-- fix: export package integration error message #174
+# [13.2.0](https://github.com/yajra/laravel-datatables-buttons/compare/v13.1.0...v13.2.0) (2026-03-28)
 
-## v10.0.5 - 2023-02-28
 
-- fix: prevent redeclaring export query generator function (Laravel Octane) #173
+### Bug Fixes
 
-## v10.0.4 - 2023-02-21
+* pint :robot: ([9568431](https://github.com/yajra/laravel-datatables-buttons/commit/9568431850ba339642406fce023341e1e7bd2f6b))
 
-- fix: stubs - remove redundant docs #172
-- fix: default model namespace
 
-## v10.0.3 - 2023-02-20
+### Features
 
-- fix: default model namespace config #171
+* export support for enum ([fb94866](https://github.com/yajra/laravel-datatables-buttons/commit/fb9486658883964a1090712fa87b16cd210077fb))
 
-## v10.0.2 - 2023-02-20
+# [13.1.0](https://github.com/yajra/laravel-datatables-buttons/compare/v13.0.2...v13.1.0) (2026-03-28)
 
-- fix: scopes when using api resource #170
 
-## v10.0.1 - 2023-02-20
+### Bug Fixes
 
-- fix: applyScopes method to support Collection #168
+* php 8.3 compatibility ([dff9d75](https://github.com/yajra/laravel-datatables-buttons/commit/dff9d75ea48f08c56a4f3caa13920319902f8359))
+* pint :robot: ([ab0efe8](https://github.com/yajra/laravel-datatables-buttons/commit/ab0efe8ee52fdb6b4d248af7131ee790a603b0f8))
+* **sonar:** Refactor this function to reduce its Cognitive Complexity from 18 to the 15 allowed. ([ef5d0b1](https://github.com/yajra/laravel-datatables-buttons/commit/ef5d0b17366dfbbcbc48d14f24d1dd1903566ea2))
 
-## v10.0.0 - 2023-02-07
 
-- Add Laravel 10 compatibility #169
+### Features
+
+* export using OpenSpout - drop fastexcel ([cf052c3](https://github.com/yajra/laravel-datatables-buttons/commit/cf052c3a2edd427675ffeb755b752e571631d1e2))
+
+## [13.0.1](https://github.com/yajra/laravel-datatables-buttons/compare/v13.0.0...v13.0.1) (2026-03-25)
+
+
+### Bug Fixes
+
+* use minifiedAjax instead of postAjax ([1da6c2e](https://github.com/yajra/laravel-datatables-buttons/commit/1da6c2e926a0856836ca329d9407b9edd4c5e489))
+
+## v13.0.0 - 2026-03-25
+
+- Laravel 13 support

@@ -34,11 +34,23 @@ if (! function_exists('Termwind\style')) {
 
 if (! function_exists('Termwind\render')) {
     /**
-     * Render HTML to a string.
+     * Render HTML to the terminal.
+     *
+     * @param  int<0, 511>  $options
      */
     function render(string $html, int $options = OutputInterface::OUTPUT_NORMAL): void
     {
         (new HtmlRenderer)->render($html, $options);
+    }
+}
+
+if (! function_exists('Termwind\parse')) {
+    /**
+     * Parse HTML to a string that can be rendered in the terminal.
+     */
+    function parse(string $html): string
+    {
+        return (new HtmlRenderer)->parse($html)->toString();
     }
 }
 

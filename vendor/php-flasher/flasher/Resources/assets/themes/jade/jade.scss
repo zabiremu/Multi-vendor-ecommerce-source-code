@@ -1,0 +1,181 @@
+.fl-jade {
+    --jade-text-light: #5f6c7b;
+    --jade-text-dark: #e2e8f0;
+    --jade-shadow: 0 8px 24px rgba(149, 157, 165, 0.1);
+    --jade-shadow-dark: 0 8px 24px rgba(0, 0, 0, 0.2);
+    --jade-border-radius: 4px;
+    --jade-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --jade-success-bg: #f0fdf4;
+    --jade-success-color: #16a34a;
+    --jade-info-bg: #eff6ff;
+    --jade-info-color: #3b82f6;
+    --jade-warning-bg: #fffbeb;
+    --jade-warning-color: #f59e0b;
+    --jade-error-bg: #fef2f2;
+    --jade-error-color: #dc2626;
+    --jade-success-bg-dark: rgba(22, 163, 74, 0.15);
+    --jade-info-bg-dark: rgba(59, 130, 246, 0.15);
+    --jade-warning-bg-dark: rgba(245, 158, 11, 0.15);
+    --jade-error-bg-dark: rgba(220, 38, 38, 0.15);
+}
+@keyframes jadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+.fl-jade {
+    padding: 1rem 1.25rem;
+    margin: 0.5rem 0;
+    position: relative;
+    box-shadow: var(--jade-shadow);
+    border-radius: var(--jade-border-radius) var(--jade-border-radius) 0 0;
+    animation: jadeIn 0.4s var(--jade-transition);
+    font-family: var(--fl-font), serif;
+    will-change: transform, opacity;
+    border: 1px solid transparent;
+    overflow: hidden;
+    .fl-content {
+        display: flex;
+        align-items: center;
+    }
+    .fl-message {
+        flex: 1;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        font-weight: 500;
+        padding-right: 0.75rem;
+    }
+    .fl-close {
+        background: none;
+        border: none;
+        font-size: 1.125rem;
+        padding: 0.375rem;
+        cursor: pointer;
+        opacity: 0.6;
+        transition: all var(--jade-transition);
+        border-radius: 50%;
+        width: 1.875rem;
+        height: 1.875rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        &:hover, &:focus {
+            opacity: 1;
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+    }
+    .fl-progress-bar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 3px;
+        overflow: hidden;
+        border-radius: 0 0 var(--jade-border-radius) var(--jade-border-radius);
+        opacity: 0.7;
+        .fl-progress {
+            height: 100%;
+            width: 100%;
+        }
+    }
+    &.fl-success {
+        background-color: var(--jade-success-bg);
+        color: var(--jade-success-color);
+        border-color: rgba(22, 163, 74, 0.1);
+        .fl-close {
+            color: var(--jade-success-color);
+            &:hover, &:focus {
+                background-color: rgba(22, 163, 74, 0.1);
+            }
+        }
+        .fl-progress-bar .fl-progress {
+            background-color: var(--jade-success-color);
+        }
+    }
+    &.fl-info {
+        background-color: var(--jade-info-bg);
+        color: var(--jade-info-color);
+        border-color: rgba(59, 130, 246, 0.1);
+        .fl-close {
+            color: var(--jade-info-color);
+            &:hover, &:focus {
+                background-color: rgba(59, 130, 246, 0.1);
+            }
+        }
+        .fl-progress-bar .fl-progress {
+            background-color: var(--jade-info-color);
+        }
+    }
+    &.fl-warning {
+        background-color: var(--jade-warning-bg);
+        color: var(--jade-warning-color);
+        border-color: rgba(245, 158, 11, 0.1);
+        .fl-close {
+            color: var(--jade-warning-color);
+            &:hover, &:focus {
+                background-color: rgba(245, 158, 11, 0.1);
+            }
+        }
+        .fl-progress-bar .fl-progress {
+            background-color: var(--jade-warning-color);
+        }
+    }
+    &.fl-error {
+        background-color: var(--jade-error-bg);
+        color: var(--jade-error-color);
+        border-color: rgba(220, 38, 38, 0.1);
+        .fl-close {
+            color: var(--jade-error-color);
+            &:hover, &:focus {
+                background-color: rgba(220, 38, 38, 0.1);
+            }
+        }
+        .fl-progress-bar .fl-progress {
+            background-color: var(--jade-error-color);
+        }
+    }
+    &.fl-rtl {
+        direction: rtl;
+        .fl-message {
+            padding-right: 0;
+            padding-left: 0.75rem;
+        }
+        .fl-progress .fl-progress {
+            transform-origin: right center;
+        }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+}
+body.fl-dark .fl-jade,
+html.fl-dark .fl-jade,
+.fl-jade.fl-auto-dark {
+    box-shadow: var(--jade-shadow-dark);
+    color: var(--jade-text-dark);
+    &.fl-success {
+        background-color: var(--jade-success-bg-dark);
+        border-color: rgba(22, 163, 74, 0.2);
+    }
+    &.fl-info {
+        background-color: var(--jade-info-bg-dark);
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+    &.fl-warning {
+        background-color: var(--jade-warning-bg-dark);
+        border-color: rgba(245, 158, 11, 0.2);
+    }
+    &.fl-error {
+        background-color: var(--jade-error-bg-dark);
+        border-color: rgba(220, 38, 38, 0.2);
+    }
+    .fl-close:hover, .fl-close:focus {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+}

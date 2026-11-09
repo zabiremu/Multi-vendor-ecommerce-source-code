@@ -1,0 +1,16 @@
+.fl-container {
+    color: var(--text-color, var(--fl-text-light));
+    opacity: 0;
+    transform: translate(0, -20px);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    will-change: opacity, transform;
+
+    &.fl-show {
+        opacity: 1;
+        transform: translate(0, 0) !important;
+    }
+
+    &.fl-rtl {
+        text-align: right;
+    }
+}

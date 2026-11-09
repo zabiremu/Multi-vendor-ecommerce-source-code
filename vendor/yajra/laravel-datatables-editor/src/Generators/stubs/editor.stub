@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DummyNamespace;
 
 use DummyModel;
@@ -7,6 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\DataTablesEditor;
 
+/**
+ * @extends DataTablesEditor<ModelName>
+ */
 class DummyClass extends DataTablesEditor
 {
     protected $model = ModelName::class;

@@ -6,15 +6,12 @@ namespace OpenSpout\Writer\XLSX\Manager;
 
 use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Common\Entity\Row;
-use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Common\Exception\InvalidArgumentException;
 use OpenSpout\Common\Exception\IOException;
 use OpenSpout\Common\Helper\Escaper\XLSX as XLSXEscaper;
 use OpenSpout\Common\Helper\StringHelper;
 use OpenSpout\Writer\Common\Entity\Worksheet;
 use OpenSpout\Writer\Common\Helper\CellHelper;
-use OpenSpout\Writer\Common\Manager\RegisteredStyle;
-use OpenSpout\Writer\Common\Manager\Style\StyleMerger;
 use OpenSpout\Writer\Common\Manager\WorksheetManagerInterface;
 use OpenSpout\Writer\XLSX\Helper\DateHelper;
 use OpenSpout\Writer\XLSX\Helper\DateIntervalHelper;
@@ -33,48 +30,17 @@ final readonly class WorksheetManager implements WorksheetManagerInterface
      * @see https://support.office.com/en-us/article/Excel-specifications-and-limits-1672b34d-7043-467e-8e27-269d656771c3 [Excel 2010]
      * @see https://support.office.com/en-us/article/Excel-specifications-and-limits-ca36e2dc-1f09-4620-b726-67c00b05040f [Excel 2013/2016]
      */
-    public const MAX_CHARACTERS_PER_CELL = 32767;
+    public const int MAX_CHARACTERS_PER_CELL = 32767;
 
-    /** @var CommentsManager Manages comments */
-    private CommentsManager $commentsManager;
-
-    private Options $options;
-
-    /** @var StyleManager Manages styles */
-    private StyleManager $styleManager;
-
-    /** @var StyleMerger Helper to merge styles together */
-    private StyleMerger $styleMerger;
-
-    /** @var SharedStringsManager Helper to write shared strings */
-    private SharedStringsManager $sharedStringsManager;
-
-    /** @var XLSXEscaper Strings escaper */
-    private XLSXEscaper $stringsEscaper;
-
-    /** @var StringHelper String helper */
-    private StringHelper $stringHelper;
-
-    /**
-     * WorksheetManager constructor.
-     */
     public function __construct(
-        Options $options,
-        StyleManager $styleManager,
-        StyleMerger $styleMerger,
-        CommentsManager $commentsManager,
-        SharedStringsManager $sharedStringsManager,
-        XLSXEscaper $stringsEscaper,
-        StringHelper $stringHelper
-    ) {
-        $this->options = $options;
-        $this->styleManager = $styleManager;
-        $this->styleMerger = $styleMerger;
-        $this->commentsManager = $commentsManager;
-        $this->sharedStringsManager = $sharedStringsManager;
-        $this->stringsEscaper = $stringsEscaper;
-        $this->stringHelper = $stringHelper;
-    }
+        private Options $options,
+        private StyleManager $styleManager,
+        private CommentsManager $commentsManager,
+        private HyperlinkManager $hyperlinkManager,
+        private SharedStringsManager $sharedStringsManager,
+        private XLSXEscaper $stringsEscaper,
+        private StringHelper $stringHelper
+    ) {}
 
     public function getSharedStringsManager(): SharedStringsManager
     {
@@ -93,8 +59,14 @@ final readonly class WorksheetManager implements WorksheetManagerInterface
     public function addRow(Worksheet $worksheet, Row $row): void
     {
         if (!$row->isEmpty()) {
-            $this->addNonEmptyRow($worksheet, $row);
+            $this->writeRow($worksheet, $row);
             $this->commentsManager->addComments($worksheet, $row);
+            $this->hyperlinkManager->addHyperlinks($worksheet, $row);
+        } elseif ($row->hidden || $row->collapsed || Row::DEFAULT_OUTLINE_LEVEL !== $row->outlineLevel) {
+            // Empty rows are not written at all, which is fine unless they carry attributes:
+            // a missing row is neither hidden nor collapsed, and has no outline level either
+            // (which would split the group it belongs to).
+            $this->writeRow($worksheet, $row);
         }
 
         $worksheet->setLastWrittenRowIndex($worksheet->getLastWrittenRowIndex() + 1);
@@ -103,11 +75,34 @@ final readonly class WorksheetManager implements WorksheetManagerInterface
     public function close(Worksheet $worksheet): void
     {
         $this->commentsManager->closeWorksheetCommentFiles($worksheet);
+        $fp = $worksheet->getFilePointer();
+        if (null !== $fp) {
+            fclose($fp);
+            $worksheet->setFilePointer(null);
+        }
+    }
+
+    public function suspendSheet(Worksheet $worksheet): void
+    {
+        $this->commentsManager->closeTempCommentFiles($worksheet);
         fclose($worksheet->getFilePointer());
+        $worksheet->setFilePointer(null);
+    }
+
+    public function resumeSheet(Worksheet $worksheet): void
+    {
+        if (null !== $worksheet->getFilePointer()) {
+            return;
+        }
+
+        $sheetFilePointer = fopen($worksheet->getFilePath(), 'a');
+        \assert(false !== $sheetFilePointer);
+        $worksheet->setFilePointer($sheetFilePointer);
+        $this->commentsManager->reopenTempCommentFiles($worksheet);
     }
 
     /**
-     * Adds non empty row to the worksheet.
+     * Writes the row, along with its cells, to the worksheet.
      *
      * @param Worksheet $worksheet The worksheet to add the row to
      * @param Row       $row       The row to be written
@@ -115,24 +110,48 @@ final readonly class WorksheetManager implements WorksheetManagerInterface
      * @throws InvalidArgumentException If a cell value's type is not supported
      * @throws IOException              If the data cannot be written
      */
-    private function addNonEmptyRow(Worksheet $worksheet, Row $row): void
+    private function writeRow(Worksheet $worksheet, Row $row): void
     {
         $sheetFilePointer = $worksheet->getFilePointer();
-        $rowStyle = $row->getStyle();
         $rowIndexOneBased = $worksheet->getLastWrittenRowIndex() + 1;
         $numCells = $row->getNumCells();
 
-        $rowHeight = $row->getHeight();
-        $hasCustomHeight = ($this->options->DEFAULT_ROW_HEIGHT > 0 || $rowHeight > 0) ? '1' : '0';
-        $rowXML = "<row r=\"{$rowIndexOneBased}\" spans=\"1:{$numCells}\" ".($rowHeight > 0 ? "ht=\"{$rowHeight}\" " : '')."customHeight=\"{$hasCustomHeight}\">";
+        $rowHeight = $row->height;
 
-        foreach ($row->getCells() as $columnIndexZeroBased => $cell) {
-            $registeredStyle = $this->applyStyleAndRegister($cell, $rowStyle);
-            $cellStyle = $registeredStyle->getStyle();
-            if ($registeredStyle->isMatchingRowStyle()) {
-                $rowStyle = $cellStyle; // Replace actual rowStyle (possibly with null id) by registered style (with id)
+        // A row only receives an explicit height (plus the customHeight flag) when one is
+        // actually set. Auto-height rows (Row::DEFAULT_HEIGHT) must carry neither `ht`
+        // nor `customHeight`, otherwise strict viewers (e.g. Excel Online, Teams/SharePoint)
+        // treat them as fixed-height instead of auto-fitting their content.
+        // The DEFAULT_ROW_HEIGHT option only affects the sheet's <sheetFormatPr
+        // defaultRowHeight>; it must not mark individual rows as custom-height.
+        // See https://github.com/openspout/openspout/issues/367
+        $rowXML = "<row r=\"{$rowIndexOneBased}\"";
+        if ($numCells > 0) {
+            $rowXML .= " spans=\"1:{$numCells}\"";
+        }
+        if ($rowHeight > 0) {
+            $rowXML .= " ht=\"{$rowHeight}\" customHeight=\"1\"";
+        }
+        if ($row->hidden) {
+            $rowXML .= ' hidden="1"';
+        }
+        if (Row::DEFAULT_OUTLINE_LEVEL !== $row->outlineLevel) {
+            $rowXML .= " outlineLevel=\"{$row->outlineLevel}\"";
+        }
+        if ($row->collapsed) {
+            $rowXML .= ' collapsed="1"';
+        }
+        $rowXML .= '>';
+
+        foreach ($row->cells as $columnIndexZeroBased => $cell) {
+            if ($cell instanceof Cell\ImageCell) {
+                $worksheet->addImage($rowIndexOneBased - 1, $columnIndexZeroBased, $cell);
             }
-            $rowXML .= $this->getCellXML($rowIndexOneBased, $columnIndexZeroBased, $cell, $cellStyle->getId());
+            $styleId = 0;
+            if (null !== $cell->style) {
+                $styleId = $this->styleManager->registerStyle($cell->style);
+            }
+            $rowXML .= $this->getCellXML($rowIndexOneBased, $columnIndexZeroBased, $cell, $styleId);
         }
 
         $rowXML .= '</row>';
@@ -144,49 +163,16 @@ final readonly class WorksheetManager implements WorksheetManagerInterface
     }
 
     /**
-     * Applies styles to the given style, merging the cell's style with its row's style.
-     *
-     * @throws InvalidArgumentException If the given value cannot be processed
-     */
-    private function applyStyleAndRegister(Cell $cell, Style $rowStyle): RegisteredStyle
-    {
-        $isMatchingRowStyle = false;
-        if ($cell->getStyle()->isEmpty()) {
-            $cell->setStyle($rowStyle);
-
-            $possiblyUpdatedStyle = $this->styleManager->applyExtraStylesIfNeeded($cell);
-
-            if ($possiblyUpdatedStyle->isUpdated()) {
-                $registeredStyle = $this->styleManager->registerStyle($possiblyUpdatedStyle->getStyle());
-            } else {
-                $registeredStyle = $this->styleManager->registerStyle($rowStyle);
-                $isMatchingRowStyle = true;
-            }
-        } else {
-            $mergedCellAndRowStyle = $this->styleMerger->merge($cell->getStyle(), $rowStyle);
-            $cell->setStyle($mergedCellAndRowStyle);
-
-            $possiblyUpdatedStyle = $this->styleManager->applyExtraStylesIfNeeded($cell);
-
-            if ($possiblyUpdatedStyle->isUpdated()) {
-                $newCellStyle = $possiblyUpdatedStyle->getStyle();
-            } else {
-                $newCellStyle = $mergedCellAndRowStyle;
-            }
-
-            $registeredStyle = $this->styleManager->registerStyle($newCellStyle);
-        }
-
-        return new RegisteredStyle($registeredStyle, $isMatchingRowStyle);
-    }
-
-    /**
      * Builds and returns xml for a single cell.
      *
      * @throws InvalidArgumentException If the given value cannot be processed
      */
-    private function getCellXML(int $rowIndexOneBased, int $columnIndexZeroBased, Cell $cell, ?int $styleId): string
-    {
+    private function getCellXML(
+        int $rowIndexOneBased,
+        int $columnIndexZeroBased,
+        Cell $cell,
+        int $styleId,
+    ): string {
         $columnLetters = CellHelper::getColumnLettersFromColumnIndex($columnIndexZeroBased);
         $cellXML = '<c r="'.$columnLetters.$rowIndexOneBased.'"';
         $cellXML .= ' s="'.$styleId.'"';
@@ -206,6 +192,9 @@ final readonly class WorksheetManager implements WorksheetManagerInterface
         } elseif ($cell instanceof Cell\ErrorCell) {
             // only writes the error value if it's a string
             $cellXML .= ' t="e"><v>'.$this->stringsEscaper->escape($cell->getRawValue()).'</v></c>';
+        } elseif ($cell instanceof Cell\TextRunCell) {
+            $sharedStringId = $this->sharedStringsManager->writeTextRuns($cell->getValue());
+            $cellXML .= ' t="s"><v>'.$sharedStringId.'</v></c>';
         } elseif ($cell instanceof Cell\EmptyCell) {
             if ($this->styleManager->shouldApplyStyleOnEmptyCell($styleId)) {
                 $cellXML .= '/>';
@@ -214,13 +203,16 @@ final readonly class WorksheetManager implements WorksheetManagerInterface
                 // NOTE: not appending to $cellXML is the right behavior!!
                 $cellXML = '';
             }
+        } elseif ($cell instanceof Cell\ImageCell) {
+            // Image is embedded as a drawing; no <c> tag is written here.
+            $cellXML = '';
         }
 
         return $cellXML;
     }
 
     /**
-     * Returns the XML fragment for a cell containing a non empty string.
+     * Returns the XML fragment for a cell containing a non-empty string.
      *
      * @param string $cellValue The cell value
      *
@@ -231,7 +223,7 @@ final readonly class WorksheetManager implements WorksheetManagerInterface
     private function getCellXMLFragmentForNonEmptyString(string $cellValue): string
     {
         if ($this->stringHelper->getStringLength($cellValue) > self::MAX_CHARACTERS_PER_CELL) {
-            throw new InvalidArgumentException('Trying to add a value that exceeds the maximum number of characters allowed in a cell (32,767)');
+            $cellValue = mb_substr($cellValue, 0, self::MAX_CHARACTERS_PER_CELL, 'UTF-8');
         }
 
         if ($this->options->SHOULD_USE_INLINE_STRINGS) {
