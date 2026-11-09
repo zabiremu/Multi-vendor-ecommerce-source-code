@@ -331,7 +331,7 @@ CREATE TABLE IF NOT EXISTS `footer_grid_threes` (
 -- Dumping data for table ecommerce.footer_grid_threes: ~5 rows (approximately)
 DELETE FROM `footer_grid_threes`;
 INSERT INTO `footer_grid_threes` (`id`, `name`, `url`, `status`, `created_at`, `updated_at`) VALUES
-	(2, 'Contact', 'https://www.skillshare.com/en/classes/Inspiration-To-Reality-Make-A-Vision-Board-For-Your-Goals/783727951', 1, '2023-04-27 01:07:03', '2023-04-27 01:13:59'),
+	(2, 'Contact', '/contact', 1, '2023-04-27 01:07:03', '2023-04-27 01:13:59'),
 	(3, 'Team Member', 'https://www.linkedin.com/', 1, '2023-05-07 23:40:39', '2023-05-07 23:40:39'),
 	(4, 'Order History', 'https://www.linkedin.com/', 1, '2023-05-07 23:40:52', '2023-05-07 23:40:52'),
 	(5, 'Affilate', 'https://www.linkedin.com/', 1, '2023-05-07 23:41:05', '2023-05-07 23:41:05'),
@@ -352,7 +352,7 @@ CREATE TABLE IF NOT EXISTS `footer_grid_twos` (
 -- Dumping data for table ecommerce.footer_grid_twos: ~5 rows (approximately)
 DELETE FROM `footer_grid_twos`;
 INSERT INTO `footer_grid_twos` (`id`, `name`, `url`, `status`, `created_at`, `updated_at`) VALUES
-	(2, 'About', 'https://www.skillshare.com/en/classes/Inspiration-To-Reality-Make-A-Vision-Board-For-Your-Goals/783727951', 1, '2023-04-26 23:19:52', '2023-04-26 23:22:26'),
+	(2, 'About', '/about', 1, '2023-04-26 23:19:52', '2023-04-26 23:22:26'),
 	(3, 'Terms andconditions', 'http://ecommerce.test/terms-and-conditions', 1, '2023-05-07 23:35:21', '2023-05-07 23:35:21'),
 	(4, 'contact', 'http://ecommerce.test/contact', 1, '2023-05-07 23:36:23', '2023-05-07 23:36:23'),
 	(5, 'Flash Sale', 'http://ecommerce.test/flash-sale', 1, '2023-05-07 23:37:54', '2023-05-07 23:37:54'),
@@ -393,8 +393,8 @@ CREATE TABLE IF NOT EXISTS `footer_socials` (
 -- Dumping data for table ecommerce.footer_socials: ~4 rows (approximately)
 DELETE FROM `footer_socials`;
 INSERT INTO `footer_socials` (`id`, `icon`, `name`, `url`, `status`, `created_at`, `updated_at`) VALUES
-	(3, 'fab fa-twitter', 'Twitter', 'https://www.skillshare.com/en/classes/Inspiration-To-Reality-Make-A-Vision-Board-For-Your-Goals/783727951', 1, '2023-04-26 22:13:12', '2023-04-26 22:18:04'),
-	(4, 'fab fa-facebook-f', 'Facebook', 'https://www.skillshare.com/en/classes/Inspiration-To-Reality-Make-A-Vision-Board-For-Your-Goals/783727951', 1, '2023-04-26 22:21:42', '2023-04-26 22:21:42'),
+	(3, 'fab fa-twitter', 'Twitter', '#', 1, '2023-04-26 22:13:12', '2023-04-26 22:18:04'),
+	(4, 'fab fa-facebook-f', 'Facebook', '#', 1, '2023-04-26 22:21:42', '2023-04-26 22:21:42'),
 	(5, 'fab fa-linkedin-in', 'linkedin', 'https://www.linkedin.com/', 1, '2023-05-07 23:23:54', '2023-05-07 23:23:54'),
 	(6, 'fab fa-instagram', 'instagram', 'https://www.linkedin.com/', 1, '2023-05-07 23:24:19', '2023-05-07 23:24:19');
 

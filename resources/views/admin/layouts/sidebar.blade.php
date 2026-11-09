@@ -1,10 +1,10 @@
 <div class="main-sidebar sidebar-style-2">
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand">
-            <a href="">{{ $settings->site_name }}</a>
+            <a href="{{ route('admin.dashbaord') }}"><img src="{{ asset('images/brand/logo-dark.svg') }}" alt="Digital Store BD"></a>
         </div>
         <div class="sidebar-brand sidebar-brand-sm">
-            <a href="">||</a>
+            <a href="{{ route('admin.dashbaord') }}"><img src="{{ asset('images/brand/logo-mark.svg') }}" alt="Digital Store BD"></a>
         </div>
         <ul class="sidebar-menu">
             <li class="menu-header">Dashboard</li>

@@ -4,7 +4,7 @@
       <i class="far fa-bars dash_bar"></i>
       <i class="far fa-times dash_close"></i>
     </span>
-    <a href="javascript:;" class="dash_logo"><img src="{{asset($logoSetting->logo)}}" alt="logo" class="img-fluid"></a>
+    <a href="javascript:;" class="dash_logo"><img src="{{asset('images/brand/logo.svg')}}" alt="Digital Store BD" class="img-fluid"></a>
     <ul class="dashboard_link">
       <li><a class="{{setActive(['vendor.dashbaord'])}}" href="{{route('vendor.dashbaord')}}"><i class="fas fa-tachometer"></i>Dashboard</a></li>
       <li><a class="" href="{{route('home')}}"><i class="fas fa-home"></i>Go To Home</a></li>

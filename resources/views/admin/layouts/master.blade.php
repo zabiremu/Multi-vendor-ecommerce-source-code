@@ -26,6 +26,8 @@
   <!-- Template CSS -->
   <link rel="stylesheet" href="{{asset('backend/assets/css/style.css')}}">
   <link rel="stylesheet" href="{{asset('backend/assets/css/components.css')}}">
+  <link rel="stylesheet" href="{{asset('backend/assets/css/theme.css')}}">
+  <link rel="icon" type="image/svg+xml" href="{{asset('images/brand/logo-mark.svg')}}">
 
   @if($settings->layout === 'RTL')
   <link rel="stylesheet" href="{{asset('backend/assets/css/rtl.css')}}">

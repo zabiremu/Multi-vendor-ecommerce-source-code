@@ -12,7 +12,7 @@
             <div class="col-xl-3 col-sm-7 col-md-6 col-lg-3">
                 <div class="wsus__footer_content">
                     <a class="wsus__footer_2_logo" href="{{url('/')}}">
-                        <img src="{{asset(@$footerInfo->logo)}}" alt="logo">
+                        <img src="{{asset('images/brand/logo.svg')}}" alt="Digital Store BD">
                     </a>
                     <a class="action" href="tel:{{@$footerInfo->phone}}"><i class="fas fa-phone-alt"></i>{{@$footerInfo->phone}}</a>
                     <a class="action" href="mailto:{{@$footerInfo->email}}"><i class="far fa-envelope"></i>{{@$footerInfo->email}}</a>

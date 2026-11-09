@@ -12,7 +12,7 @@
     @yield('title')
   </title>
 
-  <link rel="icon" type="image/png" href="{{$logoSetting->favicon}}">
+  <link rel="icon" type="image/svg+xml" href="{{asset('images/brand/logo-mark.svg')}}">
   <link rel="stylesheet" href="{{asset('frontend/css/all.min.css')}}">
   <link rel="stylesheet" href="{{asset('frontend/css/bootstrap.min.css')}}">
   <link rel="stylesheet" href="{{asset('frontend/css/select2.min.css')}}">
@@ -31,6 +31,7 @@
 
   <link rel="stylesheet" href="{{asset('frontend/css/style.css')}}">
   <link rel="stylesheet" href="{{asset('frontend/css/responsive.css')}}">
+  <link rel="stylesheet" href="{{asset('frontend/css/theme.css')}}">
     @if($settings->layout === 'RTL')
     <link rel="stylesheet" href="{{asset('frontend/css/rtl.css')}}">
   @endif

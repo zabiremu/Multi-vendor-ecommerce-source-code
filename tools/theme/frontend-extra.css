@@ -1,0 +1,48 @@
+:root {
+  --theme-primary: #0f6b3a;        /* dark green: buttons, links, highlights */
+  --theme-primary-hover: #0b5130;
+  --theme-primary-soft: #e9f5ee;   /* pale green panels */
+  --theme-black: #0b0b0d;          /* header, dashboard sidebar */
+  --theme-red: #b3261e;
+}
+
+body { background-color: #ffffff; }
+::selection { background: var(--theme-primary); color: #ffffff; }
+input[type="checkbox"], input[type="radio"], input[type="range"] { accent-color: var(--theme-primary); }
+.form-control:focus, .form-select:focus, input:focus, select:focus, textarea:focus {
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 0 0.2rem rgba(15, 107, 58, 0.15) !important;
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: var(--theme-primary); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: var(--theme-primary-hover); }
+
+/* Top header: black band with a green accent line; the white-text logo sits here */
+header { background: var(--theme-black) !important; border-bottom: 3px solid var(--theme-primary) !important; }
+header .wsus__search form button { background: var(--theme-primary) !important; color: #ffffff !important; }
+header .wsus__search form button:hover { background: var(--theme-primary-hover) !important; }
+.wsus__header_logo { width: 100% !important; }
+
+/* DataTables pagination (dashboards) */
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover,
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: var(--theme-primary) !important; color: #ffffff !important; border-color: var(--theme-primary) !important;
+}
+
+/* Toastr notifications */
+#toast-container > .toast-success { background-color: var(--theme-primary); }
+#toast-container > .toast-error { background-color: var(--theme-red); }
+#toast-container > .toast-info { background-color: var(--theme-black); }
+
+/* Customer / vendor dashboard stat boxes */
+.wsus__dashboard .green { background: var(--theme-primary) !important; }
+.wsus__dashboard .blue { background: var(--theme-black) !important; }
+.wsus__dashboard .sky { background: #157a46 !important; }
+.wsus__dashboard .purple { background: #2b2b30 !important; }
+.wsus__dashboard .red { background: var(--theme-red) !important; }
+
+/* Brand logo */
+.wsus__header_logo img, .wsus__footer_2_logo img, .dash_logo img { max-height: 56px; width: auto !important; max-width: 100%; }
+.wsus__footer_2_logo img { max-width: 240px; }
