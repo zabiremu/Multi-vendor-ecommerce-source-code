@@ -53,7 +53,7 @@
                                 <div class="wsus__contact_single">
                                     <i class="far fa-phone-alt"></i>
                                     <h5>phone number</h5>
-                                    <a href="macallto:{{@$settings->contact_phone}}">{{@$settings->contact_phone}}</a>
+                                    <a href="tel:{{@$settings->contact_phone}}">{{@$settings->contact_phone}}</a>
                                     <span><i class="far fa-phone-alt"></i></span>
                                 </div>
                             </div>

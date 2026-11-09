@@ -5,16 +5,18 @@ declare(strict_types=1);
 /*
  * PHPFlasher (toastr) configuration.
  *
- * Replaces the abandoned yoeunes/toastr package. Assets live in
- * public/vendor/flasher (regenerate with `php artisan flasher:install`).
+ * Replaces the abandoned yoeunes/toastr package. Assets live in public/flasher,
+ * copied from vendor/php-flasher/{flasher,flasher-toastr}/Resources/public.
+ * Don't run `php artisan flasher:install`: it creates public/vendor/, and that
+ * folder hides the frontend /vendor route (the server answers 403).
  */
 return [
     'default' => 'toastr',
 
-    'main_script' => '/vendor/flasher/flasher.min.js',
+    'main_script' => '/flasher/flasher.min.js',
 
     'styles' => [
-        '/vendor/flasher/flasher.min.css',
+        '/flasher/flasher.min.css',
     ],
 
     'inject_assets' => true,
@@ -33,11 +35,11 @@ return [
             // jquery.min.js, which would replace window.jQuery and drop plugins like
             // DataTables and Select2, so it is left out here.
             'scripts' => [
-                '/vendor/flasher/toastr.min.js',
-                '/vendor/flasher/flasher-toastr.min.js',
+                '/flasher/toastr.min.js',
+                '/flasher/flasher-toastr.min.js',
             ],
             'styles' => [
-                '/vendor/flasher/toastr.min.css',
+                '/flasher/toastr.min.css',
             ],
             'options' => [
                 'closeButton' => true,

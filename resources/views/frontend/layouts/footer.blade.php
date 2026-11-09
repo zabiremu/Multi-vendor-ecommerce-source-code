@@ -14,7 +14,7 @@
                     <a class="wsus__footer_2_logo" href="{{url('/')}}">
                         <img src="{{asset(@$footerInfo->logo)}}" alt="logo">
                     </a>
-                    <a class="action" href="callto:{{@$footerInfo->phone}}"><i class="fas fa-phone-alt"></i>{{@$footerInfo->phone}}</a>
+                    <a class="action" href="tel:{{@$footerInfo->phone}}"><i class="fas fa-phone-alt"></i>{{@$footerInfo->phone}}</a>
                     <a class="action" href="mailto:{{@$footerInfo->email}}"><i class="far fa-envelope"></i>{{@$footerInfo->email}}</a>
                     <p><i class="fal fa-map-marker-alt"></i> {{@$footerInfo->address}}</p>
                     <ul class="wsus__footer_social">

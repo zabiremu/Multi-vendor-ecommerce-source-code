@@ -41,7 +41,7 @@
                             <div class="wsus__vendor_text_center">
                                 <h4>{{$vendor->shop_name}}</h4>
 
-                                <a href="callto:{{$vendor->phone}}"><i class="far fa-phone-alt"></i> {{$vendor->phone}}</a>
+                                <a href="tel:{{$vendor->phone}}"><i class="far fa-phone-alt"></i> {{$vendor->phone}}</a>
                                 <a href="mailto:{{$vendor->email}}"><i class="far fa-envelope"></i> {{$vendor->email}}</a>
                                 <p class="wsus__vendor_location"><i class="fal fa-map-marker-alt"></i> {{$vendor->address}}</p>
 
