@@ -332,10 +332,10 @@ CREATE TABLE IF NOT EXISTS `footer_grid_threes` (
 DELETE FROM `footer_grid_threes`;
 INSERT INTO `footer_grid_threes` (`id`, `name`, `url`, `status`, `created_at`, `updated_at`) VALUES
 	(2, 'Contact', '/contact', 1, '2023-04-27 01:07:03', '2023-04-27 01:13:59'),
-	(3, 'Team Member', 'https://www.linkedin.com/', 1, '2023-05-07 23:40:39', '2023-05-07 23:40:39'),
-	(4, 'Order History', 'https://www.linkedin.com/', 1, '2023-05-07 23:40:52', '2023-05-07 23:40:52'),
-	(5, 'Affilate', 'https://www.linkedin.com/', 1, '2023-05-07 23:41:05', '2023-05-07 23:41:05'),
-	(6, 'Team Member', 'https://www.linkedin.com/', 1, '2023-05-07 23:41:33', '2023-05-07 23:41:33');
+	(3, 'Team Member', '#', 1, '2023-05-07 23:40:39', '2023-05-07 23:40:39'),
+	(4, 'Order History', '/user/orders', 1, '2023-05-07 23:40:52', '2023-05-07 23:40:52'),
+	(5, 'Affilate', '#', 1, '2023-05-07 23:41:05', '2023-05-07 23:41:05'),
+	(6, 'Team Member', '#', 1, '2023-05-07 23:41:33', '2023-05-07 23:41:33');
 
 -- Dumping structure for table ecommerce.footer_grid_twos
 DROP TABLE IF EXISTS `footer_grid_twos`;
@@ -356,7 +356,7 @@ INSERT INTO `footer_grid_twos` (`id`, `name`, `url`, `status`, `created_at`, `up
 	(3, 'Terms andconditions', 'http://ecommerce.test/terms-and-conditions', 1, '2023-05-07 23:35:21', '2023-05-07 23:35:21'),
 	(4, 'contact', 'http://ecommerce.test/contact', 1, '2023-05-07 23:36:23', '2023-05-07 23:36:23'),
 	(5, 'Flash Sale', 'http://ecommerce.test/flash-sale', 1, '2023-05-07 23:37:54', '2023-05-07 23:37:54'),
-	(6, 'Career', 'https://www.linkedin.com/', 1, '2023-05-07 23:40:18', '2023-05-07 23:40:18');
+	(6, 'Career', '#', 1, '2023-05-07 23:40:18', '2023-05-07 23:40:18');
 
 -- Dumping structure for table ecommerce.footer_infos
 DROP TABLE IF EXISTS `footer_infos`;
@@ -395,8 +395,8 @@ DELETE FROM `footer_socials`;
 INSERT INTO `footer_socials` (`id`, `icon`, `name`, `url`, `status`, `created_at`, `updated_at`) VALUES
 	(3, 'fab fa-twitter', 'Twitter', '#', 1, '2023-04-26 22:13:12', '2023-04-26 22:18:04'),
 	(4, 'fab fa-facebook-f', 'Facebook', '#', 1, '2023-04-26 22:21:42', '2023-04-26 22:21:42'),
-	(5, 'fab fa-linkedin-in', 'linkedin', 'https://www.linkedin.com/', 1, '2023-05-07 23:23:54', '2023-05-07 23:23:54'),
-	(6, 'fab fa-instagram', 'instagram', 'https://www.linkedin.com/', 1, '2023-05-07 23:24:19', '2023-05-07 23:24:19');
+	(5, 'fab fa-linkedin-in', 'linkedin', '#', 1, '2023-05-07 23:23:54', '2023-05-07 23:23:54'),
+	(6, 'fab fa-instagram', 'instagram', '#', 1, '2023-05-07 23:24:19', '2023-05-07 23:24:19');
 
 -- Dumping structure for table ecommerce.footer_titles
 DROP TABLE IF EXISTS `footer_titles`;
