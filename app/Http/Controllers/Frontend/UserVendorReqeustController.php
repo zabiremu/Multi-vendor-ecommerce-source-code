@@ -50,7 +50,7 @@ class UserVendorReqeustController extends Controller
 
         $vendor->save();
 
-        toastr('Submitted successfully please wait for approve!', 'success', 'success');
+        toastr('Submitted successfully please wait for approve!', 'success', [], 'success');
 
         return redirect()->back();
 

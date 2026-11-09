@@ -11,11 +11,11 @@
         "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
+        "php-flasher/flasher-toastr-laravel": "^2.4",
         "razorpay/razorpay": "2.*",
         "srmklive/paypal": "^3.1",
         "stripe/stripe-php": "^10.12",
-        "yajra/laravel-datatables": "^13.0",
-        "yoeunes/toastr": "^3.0"
+        "yajra/laravel-datatables": "^13.0"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^4.0",

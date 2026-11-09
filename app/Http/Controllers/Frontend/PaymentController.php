@@ -192,7 +192,7 @@ class PaymentController extends Controller
 
     public function paypalCancel()
     {
-        toastr('Someting went wrong try agin later!', 'error', 'Error');
+        toastr('Someting went wrong try agin later!', 'error', [], 'Error');
         return redirect()->route('user.payment');
     }
 
@@ -222,7 +222,7 @@ class PaymentController extends Controller
 
             return redirect()->route('user.payment.success');
         }else {
-            toastr('Someting went wrong try agin later!', 'error', 'Error');
+            toastr('Someting went wrong try agin later!', 'error', [], 'Error');
             return redirect()->route('user.payment');
         }
 
@@ -244,7 +244,7 @@ class PaymentController extends Controller
                 $response = $api->payment->fetch($request->razorpay_payment_id)
                     ->capture(['amount' => $payableAmountInPaisa]);
             }catch(\Exception $e){
-                toastr($e->getMessage(), 'error', 'Error');
+                toastr($e->getMessage(), 'error', [], 'Error');
                 return redirect()->back();
             }
 

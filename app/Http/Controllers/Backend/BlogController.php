@@ -61,7 +61,7 @@ class BlogController extends Controller
 
         $blog->save();
 
-        toastr('Created successfully', 'success', 'success');
+        toastr('Created successfully', 'success', [], 'success');
 
         return redirect()->route('admin.blog.index');
 
@@ -110,7 +110,7 @@ class BlogController extends Controller
 
         $blog->save();
 
-        toastr('Update successfully', 'success', 'success');
+        toastr('Update successfully', 'success', [], 'success');
 
         return redirect()->route('admin.blog.index');
     }

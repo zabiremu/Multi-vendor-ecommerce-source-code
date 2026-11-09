@@ -43,7 +43,7 @@ class BlogCategoryController extends Controller
         $category->status = $request->status;
         $category->save();
 
-        toastr('Created Successfully!', 'success', 'success');
+        toastr('Created Successfully!', 'success', [], 'success');
 
         return redirect()->route('admin.blog-category.index');
     }
@@ -75,7 +75,7 @@ class BlogCategoryController extends Controller
         $category->status = $request->status;
         $category->save();
 
-        toastr('Updated Successfully!', 'success', 'success');
+        toastr('Updated Successfully!', 'success', [], 'success');
 
         return redirect()->route('admin.blog-category.index');
     }

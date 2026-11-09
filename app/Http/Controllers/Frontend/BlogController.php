@@ -51,7 +51,7 @@ class BlogController extends Controller
         $comment->blog_id = $request->blog_id;
         $comment->comment = $request->comment;
         $comment->save();
-        toastr('Comment added successfully!', 'success', 'success');
+        toastr('Comment added successfully!', 'success', [], 'success');
 
         return redirect()->back();
     }

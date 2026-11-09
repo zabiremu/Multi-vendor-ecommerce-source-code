@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a8f14a7248c4574f9e1ccd3b11b56a41",
+    "content-hash": "c75183c5f25443d31d4dd6b5fd695803",
     "packages": [
         {
             "name": "anayarojo/shoppingcart",
@@ -7923,67 +7923,6 @@
                 }
             ],
             "time": "2026-09-15T10:33:51+00:00"
-        },
-        {
-            "name": "yoeunes/toastr",
-            "version": "v3.3.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/yoeunes/toastr.git",
-                "reference": "83454ea5c229185f96382afeff1a4777d339f4e9"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/yoeunes/toastr/zipball/83454ea5c229185f96382afeff1a4777d339f4e9",
-                "reference": "83454ea5c229185f96382afeff1a4777d339f4e9",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.2",
-                "php-flasher/flasher-toastr-laravel": "^2.4.0"
-            },
-            "type": "library",
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Younes ENNAJI",
-                    "email": "younes.ennaji.pro@gmail.com",
-                    "homepage": "https://www.linkedin.com/in/younes--ennaji/",
-                    "role": "Developer"
-                }
-            ],
-            "description": "toastr.js flush notifications for Laravel",
-            "homepage": "https://github.com/yoeunes/toastr",
-            "keywords": [
-                "dynamic-notifications",
-                "flash-notifications",
-                "laravel",
-                "open-source",
-                "phpflasher",
-                "toastr",
-                "user-feedback"
-            ],
-            "support": {
-                "docs": "https://php-flasher.io",
-                "email": "younes.ennaji.pro@gmail.com",
-                "issues": "https://github.com/php-flasher/php-flasher/issues",
-                "source": "https://github.com/php-flasher/php-flasher"
-            },
-            "funding": [
-                {
-                    "url": "https://www.paypal.com/paypalme/yoeunes",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/yoeunes",
-                    "type": "github"
-                }
-            ],
-            "abandoned": "php-flasher/flasher-toastr-laravel",
-            "time": "2025-12-31T10:47:55+00:00"
         }
     ],
     "packages-dev": [

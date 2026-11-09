@@ -57,7 +57,7 @@ class CouponController extends Controller
         $coupon->status = $request->status;
         $coupon->save();
 
-        toastr('Created Successfully', 'success', 'Success');
+        toastr('Created Successfully', 'success', [], 'Success');
 
         return redirect()->route('admin.coupons.index');
 
@@ -110,7 +110,7 @@ class CouponController extends Controller
         $coupon->status = $request->status;
         $coupon->save();
 
-        toastr('Updated Successfully', 'success', 'Success');
+        toastr('Updated Successfully', 'success', [], 'Success');
 
         return redirect()->route('admin.coupons.index');
     }

@@ -69,7 +69,7 @@ class HomePageSettingController extends Controller
             ]
         );
 
-        toastr('Updated successfully!', 'success', 'success');
+        toastr('Updated successfully!', 'success', [], 'success');
 
         return redirect()->back();
     }
@@ -97,7 +97,7 @@ class HomePageSettingController extends Controller
             ]
         );
 
-        toastr('Updated successfully!', 'success', 'success');
+        toastr('Updated successfully!', 'success', [], 'success');
 
         return redirect()->back();
 
@@ -126,7 +126,7 @@ class HomePageSettingController extends Controller
             ]
         );
 
-        toastr('Updated successfully!', 'success', 'success');
+        toastr('Updated successfully!', 'success', [], 'success');
 
         return redirect()->back();
     }
@@ -164,7 +164,7 @@ class HomePageSettingController extends Controller
             ]
         );
 
-        toastr('Updated successfully!', 'success', 'success');
+        toastr('Updated successfully!', 'success', [], 'success');
 
         return redirect()->back();
     }

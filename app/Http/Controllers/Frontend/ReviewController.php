@@ -30,7 +30,7 @@ class ReviewController extends Controller
 
         $checkReviewExist = ProductReview::where(['product_id' => $request->product_id, 'user_id' => Auth::user()->id])->first();
         if($checkReviewExist){
-            toastr('You already added a review for this product!', 'error', 'error');
+            toastr('You already added a review for this product!', 'error', [], 'error');
             return redirect()->back();
         }
 
@@ -56,7 +56,7 @@ class ReviewController extends Controller
             }
         }
 
-        toastr('Review added successfully!', 'success', 'success');
+        toastr('Review added successfully!', 'success', [], 'success');
 
         return redirect()->back();
 

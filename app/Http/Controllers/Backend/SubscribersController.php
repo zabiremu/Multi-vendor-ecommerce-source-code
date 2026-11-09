@@ -27,7 +27,7 @@ class SubscribersController extends Controller
 
         Mail::to($emails)->send(new Newsletter($request->subject, $request->message));
 
-        toastr('Mail has been send', 'success', 'success');
+        toastr('Mail has been send', 'success', [], 'success');
 
         return redirect()->back();
 

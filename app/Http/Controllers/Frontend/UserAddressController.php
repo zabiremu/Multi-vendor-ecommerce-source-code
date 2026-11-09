@@ -54,7 +54,7 @@ class UserAddressController extends Controller
         $address->address = $request->address;
         $address->save();
 
-        toastr('Created Successfully!', 'success', 'Success');
+        toastr('Created Successfully!', 'success', [], 'Success');
 
         return redirect()->route('user.address.index');
 
@@ -105,7 +105,7 @@ class UserAddressController extends Controller
         $address->address = $request->address;
         $address->save();
 
-        toastr('Updated Successfully!', 'success', 'Success');
+        toastr('Updated Successfully!', 'success', [], 'Success');
 
         return redirect()->route('user.address.index');
     }

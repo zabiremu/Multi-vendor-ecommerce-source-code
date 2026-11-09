@@ -80,7 +80,7 @@ class FooterInfoController extends Controller
 
             ]);
 
-        toastr('Updated successfully!', 'success', 'success');
+        toastr('Updated successfully!', 'success', [], 'success');
 
         return redirect()->back();
     }

@@ -37,7 +37,7 @@ class ManageUserController extends Controller
 
             Mail::to($request->email)->send(new AccountCreatedMail($request->name, $request->email, $request->password));
 
-            toastr('Created Successfully!', 'success', 'success');
+            toastr('Created Successfully!', 'success', [], 'success');
             return redirect()->back();
         }elseif ($request->role === 'vendor'){
             $user->name = $request->name;
@@ -60,7 +60,7 @@ class ManageUserController extends Controller
 
             Mail::to($request->email)->send(new AccountCreatedMail($request->name, $request->email, $request->password));
 
-            toastr('Created Successfully!', 'success', 'success');
+            toastr('Created Successfully!', 'success', [], 'success');
             return redirect()->back();
         }elseif($request->role === 'admin'){
             $user->name = $request->name;
@@ -83,7 +83,7 @@ class ManageUserController extends Controller
 
             Mail::to($request->email)->send(new AccountCreatedMail($request->name, $request->email, $request->password));
 
-            toastr('Created Successfully!', 'success', 'success');
+            toastr('Created Successfully!', 'success', [], 'success');
             return redirect()->back();
         }
     }

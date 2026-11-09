@@ -29,7 +29,7 @@ class FlashSaleController extends Controller
             ['end_date' => $request->end_date]
        );
 
-       toastr('Updated Successfully!', 'success', 'Success');
+       toastr('Updated Successfully!', 'success', [], 'Success');
 
        return redirect()->back();
 
@@ -55,7 +55,7 @@ class FlashSaleController extends Controller
         $flashSaleItem->status = $request->status;
         $flashSaleItem->save();
 
-        toastr('Product Added Successfully!', 'success', 'Success');
+        toastr('Product Added Successfully!', 'success', [], 'Success');
 
         return redirect()->back();
 

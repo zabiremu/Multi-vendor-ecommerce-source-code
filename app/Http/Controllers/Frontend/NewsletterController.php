@@ -60,10 +60,10 @@ class NewsletterController extends Controller
             $verify->verified_token = 'verified';
             $verify->is_verified = 1;
             $verify->save();
-            toastr('Email verification successfully', 'success', 'success');
+            toastr('Email verification successfully', 'success', [], 'success');
             return redirect()->route('home');
        }else {
-            toastr('Invalid token', 'error', 'Error');
+            toastr('Invalid token', 'error', [], 'Error');
             return redirect()->route('home');
        }
     }

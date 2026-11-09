@@ -43,7 +43,7 @@ class FooterGridTwoController extends Controller
         $footer->url = $request->url;
         $footer->status = $request->status;
         $footer->save();
-        toastr('Created Successfully!', 'success', 'success');
+        toastr('Created Successfully!', 'success', [], 'success');
 
         return redirect()->route('admin.footer-grid-two.index');
     }
@@ -74,7 +74,7 @@ class FooterGridTwoController extends Controller
         $footer->url = $request->url;
         $footer->status = $request->status;
         $footer->save();
-        toastr('Update Successfully!', 'success', 'success');
+        toastr('Update Successfully!', 'success', [], 'success');
 
         return redirect()->route('admin.footer-grid-two.index');
     }
@@ -110,7 +110,7 @@ class FooterGridTwoController extends Controller
         ['footer_grid_two_title' => $request->title]
        );
 
-       toastr('Updated Successfully', 'success', 'success');
+       toastr('Updated Successfully', 'success', [], 'success');
 
        return redirect()->back();
     }

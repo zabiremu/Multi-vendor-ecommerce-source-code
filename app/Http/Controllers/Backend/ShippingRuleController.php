@@ -46,7 +46,7 @@ class ShippingRuleController extends Controller
         $shipping->status = $request->status;
         $shipping->save();
 
-        toastr('Created Successfully', 'success', 'Success');
+        toastr('Created Successfully', 'success', [], 'Success');
 
         return redirect()->route('admin.shipping-rule.index');
 
@@ -90,7 +90,7 @@ class ShippingRuleController extends Controller
         $shipping->status = $request->status;
         $shipping->save();
 
-        toastr('Updated Successfully', 'success', 'Success');
+        toastr('Updated Successfully', 'success', [], 'Success');
 
         return redirect()->route('admin.shipping-rule.index');
     }

@@ -31,7 +31,7 @@ class VendorRequestController extends Controller
         $user->role = 'vendor';
         $user->save();
 
-        toastr('Updated successfully!', 'success', 'success');
+        toastr('Updated successfully!', 'success', [], 'success');
         return redirect()->route('admin.vendor-requests.index');
     }
 }

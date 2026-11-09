@@ -43,7 +43,7 @@ class CheckOutController extends Controller
         $address->address = $request->address;
         $address->save();
 
-        toastr('Address created successfully!', 'success', 'Success');
+        toastr('Address created successfully!', 'success', [], 'Success');
 
         return redirect()->back();
 

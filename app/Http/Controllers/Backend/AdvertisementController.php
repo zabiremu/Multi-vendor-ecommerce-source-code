@@ -70,7 +70,7 @@ class AdvertisementController extends Controller
             ['value' => $value]
         );
 
-        toastr('Updated Successfully!', 'success', 'success');
+        toastr('Updated Successfully!', 'success', [], 'success');
 
         return redirect()->back();
 
@@ -120,7 +120,7 @@ class AdvertisementController extends Controller
             ['value' => $value]
         );
 
-        toastr('Updated Successfully!', 'success', 'success');
+        toastr('Updated Successfully!', 'success', [], 'success');
 
         return redirect()->back();
     }
@@ -181,7 +181,7 @@ class AdvertisementController extends Controller
             ['value' => $value]
         );
 
-        toastr('Updated Successfully!', 'success', 'success');
+        toastr('Updated Successfully!', 'success', [], 'success');
 
         return redirect()->back();
     }
@@ -215,7 +215,7 @@ class AdvertisementController extends Controller
                 ['value' => $value]
             );
 
-            toastr('Updated Successfully!', 'success', 'success');
+            toastr('Updated Successfully!', 'success', [], 'success');
 
             return redirect()->back();
 
@@ -250,7 +250,7 @@ class AdvertisementController extends Controller
                 ['value' => $value]
             );
 
-            toastr('Updated Successfully!', 'success', 'success');
+            toastr('Updated Successfully!', 'success', [], 'success');
 
             return redirect()->back();
 
@@ -299,7 +299,7 @@ class AdvertisementController extends Controller
             ['value' => $value]
         );
 
-        toastr('Updated Successfully!', 'success', 'success');
+        toastr('Updated Successfully!', 'success', [], 'success');
 
         return redirect()->back();
 

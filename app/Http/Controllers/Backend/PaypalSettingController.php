@@ -37,7 +37,7 @@ class PaypalSettingController extends Controller
             ]
         );
 
-        toastr('Updated Successfully!', 'success', 'Success');
+        toastr('Updated Successfully!', 'success', [], 'Success');
         return redirect()->back();
 
     }
