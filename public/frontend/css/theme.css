@@ -1504,6 +1504,39 @@ header .wsus__search form button:hover { background: var(--theme-primary-hover) 
 @media (max-width: 991.98px) {
   #wsus__banner { margin-top: 75px !important; }
 }
+/* Hero slider on phones/tablets: show the whole slide image at its natural shape
+   (1300x500, like the homepage image banners) instead of a tall cropped box, with
+   banner-sized text and a small outlined "shop now" button. */
+@media (max-width: 991.98px) {
+  #wsus__banner .wsus__single_slider {
+    aspect-ratio: 1300 / 500;
+    padding: 0 0 0 6% !important;
+    display: flex !important;
+    align-items: center;
+    border-radius: 8px;
+    overflow: hidden;
+    background-size: cover !important;
+    background-position: center !important;
+  }
+  #wsus__banner .wsus__single_slider_text { max-width: 60%; }
+  #wsus__banner .wsus__single_slider_text h3 { font-size: clamp(11px, 3.2vw, 18px) !important; margin: 0 !important; line-height: 1.2; }
+  #wsus__banner .wsus__single_slider_text h1 { font-size: clamp(18px, 5.6vw, 36px) !important; margin: 4px 0 !important; line-height: 1.15; }
+  #wsus__banner .wsus__single_slider_text h6 { font-size: clamp(11px, 3.2vw, 18px) !important; margin: 0 0 clamp(6px, 2vw, 14px) !important; line-height: 1.2; }
+  #wsus__banner .wsus__single_slider_text .common_btn {
+    font-size: clamp(9px, 2.6vw, 13px) !important;
+    padding: clamp(3px, 1vw, 7px) clamp(8px, 2.6vw, 16px) !important;
+    background: transparent !important;
+    color: var(--theme-black) !important;
+    border: 1.5px solid var(--theme-black) !important;
+    border-radius: 3px !important;
+    text-transform: uppercase;
+    line-height: 1.4;
+  }
+  #wsus__banner .wsus__single_slider_text .common_btn:hover { background: var(--theme-primary) !important; border-color: var(--theme-primary) !important; color: #fff !important; }
+  #wsus__banner .slick-dots { bottom: 8px !important; left: 6% !important; }
+  #wsus__banner .slick-dots li button { width: 14px !important; height: 4px !important; }
+}
+
 /* Flash-sale countdown: four fixed 90px boxes overflowed narrow screens; share the width instead. */
 @media (max-width: 575.98px) {
   .simply-countdown { width: 100% !important; max-width: 100%; }
