@@ -38,7 +38,7 @@
                     <div class="wsus__pro_page_bammer">
                         @if ($productpage_banner_section?->banner_one?->status == 1)
                         <a href="{{$productpage_banner_section->banner_one->banner_url}}">
-                            <img class="img-gluid" src="{{asset($productpage_banner_section->banner_one->banner_image)}}" alt="">
+                            <img class="img-fluid w-100" src="{{asset($productpage_banner_section->banner_one->banner_image)}}" alt="">
                         </a>
                         @endif
                     </div>

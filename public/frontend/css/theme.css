@@ -1498,6 +1498,20 @@ header .wsus__search form button:hover { background: var(--theme-primary-hover) 
 .wsus__dashboard .purple { background: #2b2b30 !important; }
 .wsus__dashboard .red { background: var(--theme-red) !important; }
 
+/* ---- Responsive fixes ---- */
+/* Below 992px the fixed header is 60px (+3px green line), but the slider kept the
+   105-125px top margin meant for the desktop header + menu bar, leaving an empty band. */
+@media (max-width: 991.98px) {
+  #wsus__banner { margin-top: 75px !important; }
+}
+/* Flash-sale countdown: four fixed 90px boxes overflowed narrow screens; share the width instead. */
+@media (max-width: 575.98px) {
+  .simply-countdown { width: 100% !important; max-width: 100%; }
+  .simply-countdown .simply-section { flex: 1 1 0; width: auto !important; min-width: 0; margin: 0 4px !important; }
+}
+/* Never let content images push the page wider than the screen. */
+img { max-width: 100%; }
+
 /* Brand logo */
 .wsus__header_logo img, .wsus__footer_2_logo img, .dash_logo img { max-height: 56px; width: auto !important; max-width: 100%; }
 .wsus__footer_2_logo img { max-width: 240px; }

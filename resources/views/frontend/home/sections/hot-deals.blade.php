@@ -98,7 +98,7 @@
                         @if( $homepage_secion_banner_three?->banner_one?->status == 1)
                         <div class="wsus__single_banner_content banner_1">
                             <a href="{{$homepage_secion_banner_three->banner_one->banner_url}}">
-                                <img class="img-gluid" src="{{asset($homepage_secion_banner_three->banner_one->banner_image)}}" alt="">
+                                <img class="img-fluid w-100" src="{{asset($homepage_secion_banner_three->banner_one->banner_image)}}" alt="">
                             </a>
                         </div>
                         @endif
@@ -109,7 +109,7 @@
                                 @if( $homepage_secion_banner_three?->banner_two?->status == 1)
                                 <div class="wsus__single_banner_content single_banner_2">
                                     <a href="{{$homepage_secion_banner_three->banner_two->banner_url}}">
-                                        <img class="img-gluid" src="{{asset($homepage_secion_banner_three->banner_two->banner_image)}}" alt="">
+                                        <img class="img-fluid w-100" src="{{asset($homepage_secion_banner_three->banner_two->banner_image)}}" alt="">
                                     </a>
                                 </div>
                                 @endif
@@ -118,7 +118,7 @@
                                 <div class="wsus__single_banner_content">
                                     @if( $homepage_secion_banner_three?->banner_three?->status == 1)
                                     <a href="{{$homepage_secion_banner_three->banner_three->banner_url}}">
-                                        <img class="img-gluid" src="{{asset($homepage_secion_banner_three->banner_three->banner_image)}}" alt="">
+                                        <img class="img-fluid w-100" src="{{asset($homepage_secion_banner_three->banner_three->banner_image)}}" alt="">
                                     </a>
                                      @endif
 

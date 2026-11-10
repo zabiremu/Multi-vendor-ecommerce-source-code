@@ -143,7 +143,7 @@
                     <div class="wsus__single_banner_content">
                             @if ($cartpage_banner_section->banner_one->status == 1)
                             <a href="{{$cartpage_banner_section->banner_one->banner_url}}">
-                                <img class="img-gluid" src="{{asset($cartpage_banner_section->banner_one->banner_image)}}" alt="">
+                                <img class="img-fluid w-100" src="{{asset($cartpage_banner_section->banner_one->banner_image)}}" alt="">
                             </a>
                             @endif
                     </div>
@@ -152,7 +152,7 @@
                     <div class="wsus__single_banner_content single_banner_2">
                             @if ($cartpage_banner_section->banner_two->status == 1)
                             <a href="{{$cartpage_banner_section->banner_two->banner_url}}">
-                                <img class="img-gluid" src="{{asset($cartpage_banner_section->banner_two->banner_image)}}" alt="">
+                                <img class="img-fluid w-100" src="{{asset($cartpage_banner_section->banner_two->banner_image)}}" alt="">
                             </a>
                             @endif
                     </div>

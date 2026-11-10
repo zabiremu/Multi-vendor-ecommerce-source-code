@@ -6,7 +6,7 @@
                 @if ($homepage_secion_banner_two?->banner_one?->status == 1)
                 <div class="wsus__single_banner_content">
                     <a href="{{$homepage_secion_banner_two->banner_one->banner_url}}">
-                        <img class="img-gluid" src="{{asset($homepage_secion_banner_two->banner_one->banner_image)}}" alt="">
+                        <img class="img-fluid w-100" src="{{asset($homepage_secion_banner_two->banner_one->banner_image)}}" alt="">
                     </a>
                 </div>
                 @endif
@@ -15,7 +15,7 @@
                 @if ($homepage_secion_banner_two?->banner_two?->status == 1)
                 <div class="wsus__single_banner_content">
                     <a href="{{$homepage_secion_banner_two->banner_two->banner_url}}">
-                        <img class="img-gluid" src="{{asset($homepage_secion_banner_two->banner_two->banner_image)}}" alt="">
+                        <img class="img-fluid w-100" src="{{asset($homepage_secion_banner_two->banner_two->banner_image)}}" alt="">
                     </a>
                 </div>
                 @endif
