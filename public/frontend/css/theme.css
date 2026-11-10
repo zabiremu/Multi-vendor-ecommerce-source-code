@@ -1546,6 +1546,40 @@ header .wsus__search form button:hover { background: var(--theme-primary-hover) 
   .simply-countdown { width: 100% !important; max-width: 100%; }
   .simply-countdown .simply-section { flex: 1 1 0; width: auto !important; min-width: 0; margin: 0 4px !important; }
 }
+/* Homepage section spacing: the template mixed 60-155px gaps (padding + margin + inner
+   margins). Use one consistent gap between sections instead. */
+:root { --section-gap: 45px; }
+@media (max-width: 767.98px) { :root { --section-gap: 30px; } }
+#wsus__banner .wsus__banner_content { margin-top: 20px !important; }
+@media (max-width: 991.98px) { #wsus__banner .wsus__banner_content { margin-top: 12px !important; } }
+#wsus__flash_sell { padding-top: var(--section-gap) !important; }
+#wsus__monthly_top { margin-top: var(--section-gap) !important; margin-bottom: 0 !important; }
+#wsus__brand_sleder { margin-top: var(--section-gap) !important; }
+#wsus__single_banner.wsus__single_banner_2 { padding-top: var(--section-gap) !important; }
+#wsus__hot_deals { padding-top: var(--section-gap) !important; }
+#wsus__hot_deals .container > .wsus__hot_large_item:first-child { margin-top: 0 !important; }
+#wsus__electronic { margin-top: var(--section-gap) !important; margin-bottom: 0 !important; }
+#wsus__large_banner { padding-top: var(--section-gap) !important; }
+#wsus__weekly_best { margin-top: var(--section-gap) !important; }
+#wsus__blogs.home_blogs { margin-top: 0 !important; padding-top: var(--section-gap) !important; }
+footer.footer_2 { margin-top: calc(var(--section-gap) + 10px) !important; padding-top: 50px !important; }
+
+/* "Popular Categories" banner: the template fixes its box at 150px (desktop), 240px (tablet)
+   and 300px (phone), but the image is a wide 1296x150 strip, so phones showed ~250px of
+   empty space under it. Let the box take the image's height. */
+.wsus__monthly_top_2 .wsus__monthly_top_banner { height: auto !important; margin-bottom: var(--section-gap) !important; }
+.wsus__monthly_top_2 .wsus__monthly_top_banner a { display: block; }
+.wsus__monthly_top_2 .wsus__monthly_top_banner img { width: 100%; height: auto; border-radius: 6px; display: block; }
+
+/* Banners inside the Hot Deals area: below 992px they stack, but kept fixed heights
+   (e.g. 350px) taller than their images. Size them to the image and space them evenly. */
+@media (max-width: 991.98px) {
+  .home_2_single_banner .wsus__single_banner_content { height: auto !important; margin-bottom: 15px !important; }
+  .home_2_single_banner .wsus__single_banner_content a { display: block; }
+  .home_2_single_banner .wsus__single_banner_content img { height: auto; display: block; border-radius: 6px; }
+  .home_2_single_banner .col-12.mt-lg-4 .wsus__single_banner_content { margin-bottom: 0 !important; }
+}
+
 /* Never let content images push the page wider than the screen. */
 img { max-width: 100%; }
 
