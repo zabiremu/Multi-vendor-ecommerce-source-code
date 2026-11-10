@@ -1504,20 +1504,24 @@ header .wsus__search form button:hover { background: var(--theme-primary-hover) 
 @media (max-width: 991.98px) {
   #wsus__banner { margin-top: 75px !important; }
 }
-/* Hero slider on phones/tablets: show the whole slide image at its natural shape
-   (1300x500, like the homepage image banners) instead of a tall cropped box, with
-   banner-sized text and a small outlined "shop now" button. */
+/* Hero slider: the box always has the slide images' own shape (1300x500), so the whole
+   image is visible at every screen size instead of being cropped by fixed padding.
+   Upload slider images at 1300x500 to keep them uncropped. */
+#wsus__banner .wsus__single_slider {
+  aspect-ratio: 1300 / 500;
+  height: auto !important;       /* the template forces 300px below 768px, which crops the image */
+  padding: 0 0 0 6% !important;
+  display: flex !important;
+  align-items: center;
+  border-radius: 8px;
+  overflow: hidden;
+  background-size: cover !important;
+  background-position: center !important;
+}
+#wsus__banner .wsus__single_slider_text { max-width: 55%; }
+
+/* Phones/tablets: banner-sized text and a small outlined "shop now" button. */
 @media (max-width: 991.98px) {
-  #wsus__banner .wsus__single_slider {
-    aspect-ratio: 1300 / 500;
-    padding: 0 0 0 6% !important;
-    display: flex !important;
-    align-items: center;
-    border-radius: 8px;
-    overflow: hidden;
-    background-size: cover !important;
-    background-position: center !important;
-  }
   #wsus__banner .wsus__single_slider_text { max-width: 60%; }
   #wsus__banner .wsus__single_slider_text h3 { font-size: clamp(11px, 3.2vw, 18px) !important; margin: 0 !important; line-height: 1.2; }
   #wsus__banner .wsus__single_slider_text h1 { font-size: clamp(18px, 5.6vw, 36px) !important; margin: 4px 0 !important; line-height: 1.15; }
